@@ -6,6 +6,8 @@ library(rgdal)
 #library(raster)
 library(stplanr)
 #library(SDraw)
+# # Source parallel version of line2route (depreciated in stplanr 0.1.9) - to make it faster
+# source("https://github.com/ropensci/stplanr/raw/18a598674bb378d5577050178da1561489496157/R/od-funs.R")
 
 memory.limit(size=1000000)
 
@@ -32,7 +34,9 @@ proj_4326 <- CRS("+proj=longlat +init=epsg:4326")   # global projection - lat/lo
 
 # Restrict to selected lines
  lines_toroute_data <- lines[(lines$e_dist_km < maxdist_mode) & !is.na(lines$e_dist_km) & lines$e_dist_km!=0,]
+ lines_toroute_data <- lines_toroute_data[,c("geo_code1", "geo_code2", "id", "home_lad14cd", "e_dist_km")]
  lines_toroute_data <- lines_toroute_data[order(lines_toroute_data$id),]
+ saveRDS(lines_toroute_data, (file.path("1_DataCreated/lines_toroute_data.Rds")))
  
 # MAKE A SPATIAL OBJECT OF CS LINES
  lines_toroute_lines <- od2line(flow = lines_toroute_data, zones = cents_all, destinations = cents_all) # slower implementation for where o and d have different geography
@@ -40,7 +44,8 @@ proj_4326 <- CRS("+proj=longlat +init=epsg:4326")   # global projection - lat/lo
  lines_toroute <- SpatialLinesDataFrame(sl = lines_toroute_lines, data = lines_toroute_data)
  lines_toroute <- spTransform(lines_toroute, proj_4326)
  
- routes <- line2route(lines_toroute_lines, route_fun = "route_cyclestreet", plan = "fastest", n_processes = 10, base_url = "http://pct.cyclestreets.net/api/")
+ route_type <- "fastest" # run for fastest then quietest
+ routes <- line2route(lines_toroute, route_fun = route_cyclestreet, plan = route_type, n_processes = 10, base_url = "http://pct.cyclestreets.net/api/")
  
 
 
