@@ -57,7 +57,7 @@ proj_4326 <- CRS("+proj=longlat +init=epsg:4326")   # global projection - lat/lo
   lad14 <- spTransform(lad14, proj_4326)
 
 # Create and populate matrix for between-routes
-  la_mat <- data.frame("lahome"= character(0), "latravel"=character(0), "length"=numeric(0), "percent"=numeric(0), stringsAsFactors=FALSE)
+  la_mat <- data.frame("lahome"= character(0), "latravel"=character(0), "length"=numeric(0),stringsAsFactors=FALSE)
   for(j in 1:length(lahome_lad14$lad14cd)){
   for(k in 1:length(latravel_lad14$lad14cd)){
   lahome <- as.character(lahome_lad14$lad14cd[j])
@@ -65,7 +65,7 @@ proj_4326 <- CRS("+proj=longlat +init=epsg:4326")   # global projection - lat/lo
   if(is.null(intersect(routes[routes@data$home_lad14cd==lahome,], lad14[lad14@data$lad15cd==latravel,]))) {
   #  la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==latravel)] <- 0
   } else {
-    la_mat[nrow(la_mat) + 1,] = list(lahome,latravel,NA,NA)
+    la_mat[nrow(la_mat) + 1,] = list(lahome,latravel,NA)
     la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==latravel)] <- lineLength(intersect(routes[routes@data$home_lad14cd==lahome,], lad14[lad14@data$lad15cd==latravel,]), byid = FALSE)
   }
   }
