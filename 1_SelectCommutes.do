@@ -24,11 +24,9 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			gen random=uniform()
 			by home_lad14cd mode4 (random), sort: gen littlen=_n
 			keep if littlen<=1000
-			bysort home_lad14cd mode4: gen bign=_N
-			bysort mode4: sum bi
-			drop commute_mainmode9 home_gor random littlen bign
+			drop commute_mainmode9 home_gor random littlen
 			
-		* MAKE 2-WAY IDs
+		/* MAKE 2-WAY IDs
 			rename home_lsoa geo_code_o
 			rename work_lsoa geo_code_d
 			gen osub1=substr(geo_code_o,1,1)
@@ -50,12 +48,17 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			replace geo_code2=geo_code_o if homefirst==0
 			drop osub1 dsub1 osub2 dsub2 homefirst
 			gen id=geo_code1+" "+geo_code2
+		*/
+			rename home_lsoa geo_code_o
+			rename work_lsoa geo_code_d
+			gen id=geo_code_o+" "+geo_code_d
+		
 		
 		 * COUNT NUMBER OF PEOPLE IN EACH ROUTE
-		 	bysort id mode4: gen freq=_N
+		 *	bysort id mode4: gen freq=_N
 		
 		* SAVE
-			order id geo_code1 geo_code2 home_lad14cd home_laname mode4 //freq
+			order id geo_code_o geo_code_d home_lad14cd home_laname mode4 //freq
 			keep id-mode4 //freq
 			*duplicates drop
 			sort id
