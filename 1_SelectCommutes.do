@@ -52,11 +52,11 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			gen id=geo_code1+" "+geo_code2
 		
 		 * COUNT NUMBER OF PEOPLE IN EACH ROUTE
-		 *	bysort id mode4: gen freq=_N
+		 	bysort id mode4: gen freq=_N
 		
 		* SAVE
-			order id geo_code1 geo_code2 home_lad14cd home_laname mode4 // freq
-			keep id-mode4
-		*	duplicates drop
+			order id geo_code1 geo_code2 home_lad14cd home_laname mode4 //freq
+			keep id-mode4 //freq
+			*duplicates drop
 			sort id
-			export delimited using "mh-route-commutes\1_DataCreated\1_sampleroutes_oneach.csv", replace
+			export delimited using "mh-route-commutes\1_DataCreated\1_sampleroutes.csv", replace

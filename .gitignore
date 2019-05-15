@@ -3,5 +3,6 @@
 .RData
 .Ruserdata
 
-# Safeguarded LSOA data
-#1_DataCreated/**
+# Internal temp files
+1_DataCreated/temp/**
+x-drafts/**
