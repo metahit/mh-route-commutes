@@ -4,7 +4,7 @@
 .Ruserdata
 
 # Internal temp files
-1_DataInput/os-**
+0_DataInput/os-**
 1_DataCreated/temp/**
 x-drafts/**
 x-extras/**
