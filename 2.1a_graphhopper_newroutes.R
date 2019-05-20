@@ -53,4 +53,8 @@ for (i in 1:10){
   
 }
 
+# Access road_class by
+# routes[[1]][[2]][["paths"]][["details"]][["road_class"]]
+# where 1 is index 1 and 2 represents the JSON object at the position 2
+
 # https://graphhopper.com/api/1/route?point=49.932707,11.588051&point=50.3404,11.64705&vehicle=car&debug=true&type=json&details=road_class&[YOUR-KEY]
