@@ -20,7 +20,7 @@ route_graphhopper2 <- function(from, to, l = NULL, vehicle = "bike", silent = TR
       point = paste0(coords[1, c("ty", "tx")], collapse = ","),
       vehicle = vehicle,
       details = "road_class", 
-      details = "road_environment",
+      #details = "road_environment",
       locale = "en-US",
       debug = "true",
       points_encoded = "false",
