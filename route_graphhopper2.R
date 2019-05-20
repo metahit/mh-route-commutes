@@ -64,15 +64,14 @@ route_graphhopper2 <- function(from, to, l = NULL, vehicle = "bike", silent = TR
   df <- data.frame(
     time = obj$paths$time / (1000 * 60),
     dist = obj$paths$distance,
-    road_class = obj$paths$details$road_class,
     change_elev = change_elev
   )
   
   route <- sp::SpatialLinesDataFrame(route, df)
-  sp::proj4string(route) <- sp::CRS("+init=epsg:4326")
+  sp::proj4string(route) <- sp::CRS("+proj=longlat +init=epsg:4326")
   
   if(return_JSON_obj)
-    return(list(route, obj))
+    return (list(route, obj))
   else
     return(route)
   
