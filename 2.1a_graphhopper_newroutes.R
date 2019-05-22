@@ -6,6 +6,7 @@ library(rgdal)
 library(raster)
 library(stplanr)
 library(SDraw)
+library(geojsonio)
 
 ####################
 # SET UP
@@ -27,7 +28,7 @@ lahome_lad14 <- lad14[lad14$lahome==1,]
 latravel_lad14 <- lad14[lad14$latravel==1,]
 
 # Load and subset census lines to be routed
-lines <- read.csv("1_DataCreated/1_sampleroutes.csv")
+lines <- read.csv("1_DataCreated/1_sampleroutes_small.csv")
 lines <- lines[lines$mode4==mode,]
 lines <- lines[lines$home_lad14cd %in% lahome_lad14$lad14cd,]
 
@@ -52,6 +53,7 @@ for (i in 1:10){
   routes[[i]] <- route_graphhopper2(start_point, end_point, vehicle = "car", return_JSON_obj = T)
   
 }
+geojson_write(routes, file = file.path("routes_10.geojson"))
 
 # Access road_class by
 # routes[[1]][[2]][["paths"]][["details"]][["road_class"]]
