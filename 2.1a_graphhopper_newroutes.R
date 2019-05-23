@@ -7,6 +7,7 @@ library(raster)
 library(stplanr)
 library(SDraw)
 library(geojsonio)
+library(raster)
 
 ####################
 # SET UP
@@ -50,10 +51,15 @@ for (i in 1:10){
   end_point <- coords2[i,] %>% as.numeric()
   print(i)
   
-  routes[[i]] <- route_graphhopper2(start_point, end_point, vehicle = "car", return_JSON_obj = T)
+  routes[[i]] <- route_graphhopper2(start_point, end_point, vehicle = "car", return_JSON_obj = F)
   
 }
-geojson_write(routes, file = file.path("routes_10.geojson"))
+
+# Combine all routes into a single spatialdataframe
+routes_combined <- do.call(bind, routes) 
+
+# Save all routes together
+geojson_write(routes_combined, file = file.path("routes_10.geojson"))
 
 # Access road_class by
 # routes[[1]][[2]][["paths"]][["details"]][["road_class"]]
