@@ -46,12 +46,15 @@ coords1 <- cents_all@coords[match(lines$geo_code_o, cents_all$lsoa11cd),] # gets
 coords2 <- cents_all@coords[match(lines$geo_code_d, cents_all$lsoa11cd),]
 
 routes <- list()
+road_class <- list()
 for (i in 1:10){
   start_point <- coords1[i,] %>% as.numeric()
   end_point <- coords2[i,] %>% as.numeric()
   print(i)
   
-  routes[[i]] <- route_graphhopper2(start_point, end_point, vehicle = "car", return_JSON_obj = F)
+  route_and_route_class <- route_graphhopper2(start_point, end_point, vehicle = "car", return_JSON_obj = T)
+  routes[[i]] <- route_and_route_class[[1]]
+  road_class[[i]] <- route_and_route_class[[2]]
   
 }
 
