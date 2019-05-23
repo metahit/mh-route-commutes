@@ -64,8 +64,7 @@ route_graphhopper2 <- function(from, to, l = NULL, vehicle = "bike", silent = TR
   df <- data.frame(
     time = obj$paths$time / (1000 * 60),
     dist = obj$paths$distance,
-    change_elev = change_elev,
-    road_class = obj[["paths"]][["details"]][["road_class"]]
+    change_elev = change_elev
   )
   
   route <- sp::SpatialLinesDataFrame(route, df)
