@@ -24,7 +24,7 @@ lahome_lad14 <- lad14[lad14$lahome==1,]
 latravel_lad14 <- lad14[lad14$latravel==1,]
 
 # Load and subset census lines to be routed
-lines <- read.csv("1_DataCreated/1_sampleroutes.csv")
+lines <- read.csv("1_DataCreated/1_sampleroutes_small.csv")
 lines <- lines[lines$mode4==mode,]
 lines <- lines[lines$home_lad14cd %in% lahome_lad14$lad14cd,]
 
@@ -46,7 +46,7 @@ lines_toroute_data <- lines[(lines$e_dist_km < maxdist_mode) & !is.na(lines$e_di
 lines_toroute_data <- lines_toroute_data[,c("geo_code_o", "geo_code_d", "id", "home_lad14cd", "e_dist_km")]
 lines_toroute_data <- lines_toroute_data[order(lines_toroute_data$id),]
 
-# MAKE A SPATIAL OBJECT OF CS LINES
+# MAKE A SPATIAL OBJECT OF LINES
 lines_toroute_lines <- od2line(flow = lines_toroute_data, zones = cents_all, destinations = cents_all)
 rownames(lines_toroute_data) <- sapply(1:length(lines_toroute_lines), function(j) lines_toroute_lines@lines[[j]]@ID) # FORCE DATA ROW NAMES TO BE SAME AS ID IN LINES (in case don't start from '1')
 lines_toroute <- SpatialLinesDataFrame(sl = lines_toroute_lines, data = lines_toroute_data)
