@@ -62,4 +62,4 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			keep id-mode4 //freq
 			*duplicates drop
 			sort id
-			export delimited using "mh-route-commutes\1_DataCreated\1_sampleroutes.csv", replace
+			export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes.csv", replace

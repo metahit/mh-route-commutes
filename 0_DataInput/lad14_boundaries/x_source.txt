@@ -1,3 +1,0 @@
-https://geoportal.statistics.gov.uk/datasets/local-authority-districts-december-2015-ultra-generalised-clipped-boundaries-in-great-britain
-
-NB have checked aind lad15 codes always same as lad14
