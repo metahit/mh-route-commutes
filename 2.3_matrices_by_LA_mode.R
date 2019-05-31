@@ -52,12 +52,12 @@ for(i in 1:4){
 
 # Add in a bit extra to capture within-LSOA routes - assume all on non-motorway, non-primary [?ok]
 rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] <-  as.numeric(rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] 
-                                                                                + (lsoa_within_dist*as.numeric(sum(lines_within$home_lad14cd==lahome))))
+                                                                                + (as.numeric(sum(lines_within$within_lsoa_dist[lines_within$home_lad14cd==lahome]))))
 
 # Add in a bit extra to capture URBAN within-LSOA routes
 lines_within_urban <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome & lines$urban_lsoa==1),]
 rc_mat$length_bua[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] <-  as.numeric(rc_mat$length_bua[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] 
-                                                                                + (lsoa_within_dist*as.numeric(sum(lines_within_urban$home_lad14cd==lahome))))
+                                                                                    + (as.numeric(sum(lines_within_urban$within_lsoa_dist[lines_within_urban$home_lad14cd==lahome]))))
 
 #Save
 write_csv(rc_mat, file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, ".csv")))
