@@ -10,7 +10,7 @@ for(i in 1:length(latravellist$lad14cd)){
   if(is.null(intersect(legs[legs@data$home_lad14cd==lahome,], lad14shape[lad14shape@data$lad15cd==latravel,]))) {
   } else {
     la_mat[nrow(la_mat) + 1,] = list(lahome,latravel,NA)
-    la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==latravel)] <- lineLength(intersect(legs[legs@data$home_lad14cd==lahome,], lad14shape[lad14shape@data$lad15cd==latravel,]), byid = FALSE)
+    la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==latravel)] <- (lineLength(intersect(legs[legs@data$home_lad14cd==lahome,], lad14shape[lad14shape@data$lad15cd==latravel,]), byid = FALSE)) / 1000
   }
 }
 
@@ -18,7 +18,7 @@ for(i in 1:length(latravellist$lad14cd)){
 lines_within <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome),]
 latravel <- lahome
 la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==lahome)] <-  as.numeric(la_mat$length[(la_mat$lahome==lahome & la_mat$latravel==lahome)] 
-                                                                                + (lsoa_within_dist*as.numeric(sum(lines_within$home_lad14cd==lahome))))
+                                                                                + (as.numeric(sum(lines_within$within_lsoa_dist[lines_within$home_lad14cd==lahome]))))
 
 #Save
 write_csv(la_mat, file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, ".csv")))
@@ -41,11 +41,11 @@ for(i in 1:4){
   if(nrow(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,])==0) {
   } else {
     rc_mat[nrow(rc_mat) + 1,] = list(lahome,i,NA,NA)
-    rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==i)] <- lineLength(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,])
+    rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==i)] <- (lineLength(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,])) / 1000
     if(is.null(intersect(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,], builtup))) {
       rc_mat$length_bua[(rc_mat$lahome==lahome & rc_mat$road_classcat==i)] <- 0
     } else {
-      rc_mat$length_bua[(rc_mat$lahome==lahome & rc_mat$road_classcat==i)] <- lineLength(intersect(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,], builtup), byid = FALSE)
+      rc_mat$length_bua[(rc_mat$lahome==lahome & rc_mat$road_classcat==i)] <- (lineLength(intersect(legs[legs@data$home_lad14cd==lahome & legs@data$road_classcat==i,], builtup), byid = FALSE)) / 1000
     }
   }
 }

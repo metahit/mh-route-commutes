@@ -14,6 +14,7 @@ for (i in 1:nrow(lines_toroute_mode)){
 
 # Combine all routes/legs into a single spatialdataframe
 legs <- do.call(bind, leglist) 
+legs <- spTransform(legs, proj_27700)
 #mapview::mapview(legs)
 #(summary(legs@data$road_class))
 saveRDS(legs, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/legs_mode",mode,".Rds"))))

@@ -15,7 +15,16 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			keep if trip_purpose==1
 			recode trip_mainmode 1=2 2=1 3/5=3 6=. 7/9=4 10/max=., gen(mode4)
 			bysort mode4: egen topp = pctile(trip_distraw_km), p(98)
-			tab mode4, sum(topp)	
+			tab mode4, sum(topp)
+			
+	** ESTIMATE WITHIN-ZONE TRAVEL DISTANCE
+		use "C:\Users\Anna Goodman\Dropbox\GitHub\pct-inputs\02_intermediate\x_temporary_files\scenario_building\commute\CommuteSP_individual.dta" 
+			keep if home_lsoa== work_lsoa & home_gor<=9 // within-zone in England
+			sum rf_dist_km
+			keep home_lsoa rf_dist_km
+			duplicates drop
+		save "mh-route-commutes\02_DataCreated\temp\withinlsoa_dist.dta", replace
+		
 	*/
 		
 	*****************
@@ -29,6 +38,12 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			drop if _m!=3
 			drop _m
 			
+		* MERGE IN ESTIMATED WITHIN-ZONE TRAVEL
+			merge m:1 home_lsoa using "mh-route-commutes\02_DataCreated\temp\withinlsoa_dist.dta"
+			drop if _m!=3
+			drop _m
+			rename rf_dist_km within_lsoa_dist
+						
 		* DROP OD PAIRS NOT IN SCOPE
 			drop if work_lsoa=="OD0000001" | work_lsoa=="" 			// Work from home and non-commuters
 			drop if work_lsoa=="OD0000002" | work_lsoa=="OD0000003" | work_lsoa=="OD0000004" | work_lsoa=="S92000003" | work_lsoa=="N92000002"	// No fixed workplace or overseas
@@ -56,7 +71,7 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)
 		
 		* SAVE
-			order id geo_code_o geo_code_d home_lad14cd home_laname urban_lsoa mode4 maxdist_mode //freq
+			order id geo_code_o geo_code_d home_lad14cd home_laname urban_lsoa within_lsoa_dist mode4 maxdist_mode //freq
 			keep id-maxdist_mode //freq
 			*duplicates drop
 			sort id
