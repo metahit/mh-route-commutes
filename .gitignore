@@ -6,6 +6,7 @@
 # Internal temp files
 01_DataInput/osm/**
 02_DataCreated/temp/**
+02_DataCreated/temp_matrix/**
 02_DataCreated/extras/**
 09x-drafts/**
 09x-extras/**

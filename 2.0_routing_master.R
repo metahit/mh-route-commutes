@@ -23,6 +23,7 @@ inputdf <- data.frame(
   modename = c("bike", "foot", "car", "truck")  
 )
 lsoa_within_dist <- 0.5
+# TO DO - revisit this distance
 
 # Define LA list
 lad14 <- read.csv("01_DataInput/lad14cd.csv")
@@ -65,7 +66,7 @@ for(j in 1:length(lahomelist$lad14cd)){
   for(k in 1:3) {
     mode <- as.numeric(k)
     source("2.2_graphhopper_by_LA_mode.R")
-   # source("2.3_matrices_by_LA_mode.R")
+    source("2.3_matrices_by_LA_mode.R")
   }
 }
 

@@ -50,7 +50,7 @@ for(i in 1:4){
   }
 }
 
-# Add in a bit extra to capture within-LSOA routes - assume all on non-motorway, non-primary
+# Add in a bit extra to capture within-LSOA routes - assume all on non-motorway, non-primary [?ok]
 rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] <-  as.numeric(rc_mat$length[(rc_mat$lahome==lahome & rc_mat$road_classcat==3)] 
                                                                                 + (lsoa_within_dist*as.numeric(sum(lines_within$home_lad14cd==lahome))))
 
