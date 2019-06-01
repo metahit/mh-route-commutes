@@ -28,7 +28,6 @@ lad14 <- read.csv("01_DataInput/lad14cd.csv")
 lahomelist <- lad14[lad14$lahome==1,]
 latravellist <- lad14[lad14$latravel==1,]
 
-
 ####################
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
@@ -63,13 +62,39 @@ for(j in 1:length(lahomelist$lad14cd)){
   # Create matrices by mode
   for(k in 1:4) {
     mode <- as.numeric(k)
-    source("2.2_graphhopper_by_LA_mode.R")
-    source("2.3_matrices_by_LA_mode.R")
+    #source("2.2_graphhopper_by_LA_mode.R")
+   source("2.3_matrices_by_LA_mode.R")
   }
 }
+##done up to: E06000006 for 1:4, plus bath/bristol. After that 1:3
 
 ####################
 # PART 3: REJOIN MATRICES
 ####################
+# Join LA and RC matrices to single list by mode
+for(k in 1:4) {
+  mode <- as.numeric(k)
+  # Add files together in a list
+  lahome <- as.character(lahomelist$lad14cd[1])
+  listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, ".csv")))
+  listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, ".csv")))
+  for(j in 2:length(lahomelist$lad14cd)){
+    lahome <- as.character(lahomelist$lad14cd[j])
+    nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, ".csv")))
+    listla <- full_join(listla, nextfilela)
+    nextfilerc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, ".csv")))
+    listrc <- full_join(listrc, nextfilerc)
+  }
+  # Reshape long to wide
+    matla <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
+    matla[is.na(matla)] <- 0  
+    matrc <- reshape2::dcast(listrc, lahome~road_class, value.var="plength")
+    matrc[is.na(matrc)] <- 0  
+  # Save
+    write_csv(matla, file.path(paste0("02_DataCreated/2_matla_mode", mode, ".csv")))
+    write_csv(matrc, file.path(paste0("02_DataCreated/2_matrc_mode", mode, ".csv")))
+}
+  
+  
 
-
+  
