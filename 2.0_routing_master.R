@@ -32,7 +32,7 @@ latravellist <- lad14[lad14$latravel==1,]
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
 # Load large files
-lines_all <- read.csv("02_DataCreated/1_sampleroutes_small.csv")
+lines_all <- read.csv("02_DataCreated/1_sampleroutes.csv")
 cents_all <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
 
 # Run by LA
