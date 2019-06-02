@@ -2,7 +2,7 @@
 # Modified it to add road_class and return the values by leg, using the info from the API
 # https://graphhopper.com/api/1/route?point=49.932707,11.588051&point=50.3404,11.64705&vehicle=car&debug=true&type=json&details=road_class&[YOUR-KEY]
 
-leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
+leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
   
   # Convert character strings to lon/lat if needs be
   coords <- od_coords(from, to, l)
@@ -64,6 +64,8 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     # Attribute data for the route
     df <- data.frame(
       home_lad14cd = homearea,
+      routeid = routeid,
+      lahome_weight = weight,
       time = obj$paths$time / (1000 * 60),
       dist = obj$paths$distance,
       change_elev = change_elev
@@ -77,6 +79,8 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     numlegs <- as.numeric(nrow(obj$paths$details$road_class[[1]]))
     detailsdf <- data.frame(
       legid = (1:numlegs),
+      routeid = routeid,
+      lahome_weight = weight,
       home_lad14cd = homearea,
       start = as.numeric(obj$paths$details$road_class[[1]][,1]), 
       end = as.numeric(obj$paths$details$road_class[[1]][,2]), 
@@ -89,13 +93,16 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       legstart <- (detailsdf$start[detailsdf$legid==legno])+1 # plus 1 as graphhopper starts with 0
       legend <- (detailsdf$end[detailsdf$legid==legno])+1
       l[[legno]] <- sp::Lines(list(sp::Line(obj$paths$points[[2]][[1]][legstart:legend, 1:2])), ID=legno)
-      
-      #detailsdf$length <-  
-      ## question, can we calculate here the length of the leg based on the series of coordinates? I tried linelength but because latlong was getting answers in decimal degrees https://www.rdocumentation.org/packages/SDraw/versions/2.1.8/topics/lineLength
     }
+    
+    # Turn into a spatial object
     route <- sp::SpatialLines(l)
     route <- sp::SpatialLinesDataFrame(route, detailsdf)
     
+    # # reproject to easting/northing and calculate distance of each leg
+    # sp::proj4string(route) <- sp::CRS("+proj=longlat +init=epsg:4326")
+    # route <- spTransform(route, proj_27700)
+    # route@data$length <-lineLength(route, byid = TRUE)
   }
  
   sp::proj4string(route) <- sp::CRS("+proj=longlat +init=epsg:4326")

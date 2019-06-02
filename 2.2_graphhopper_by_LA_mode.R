@@ -7,9 +7,12 @@ leglist <- list()
 for (i in 1:nrow(lines_toroute_mode)){
   start_point <- coordinates(lines_toroute_mode[i,])[[1]][[1]][1,] %>% as.numeric()
   end_point <- coordinates(lines_toroute_mode[i,])[[1]][[1]][2,] %>% as.numeric()
-  
+  routeid <- as.character(lines_toroute_mode@data$id[i])
+  lahome_weight <- as.numeric(lines_toroute_mode@data$lahome_weight[i])
+
   #print(i)
-  leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, vehicle = modename , legs = T)
+  leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, routeid = routeid, 
+                                  weight = lahome_weight, vehicle = modename , legs = T)
 }
 
 # Combine all routes/legs into a single spatialdataframe

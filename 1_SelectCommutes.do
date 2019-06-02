@@ -53,25 +53,29 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 		* COMBINE CITY OF LONDON AND ISLES SCILLY
 			replace home_lad14cd="E09000033" if home_laname=="City of London"
 			replace home_lad14cd="E06000052" if home_laname=="Isles of Scilly"
-			
-		* RANDOMLY SELECT BY LA BY MODE
+
+		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
 			recode commute_mainmode9 4/5=3 7=4, gen(mode4)
 			set seed 180426
 			gen random=uniform()
 			by home_lad14cd mode4 (random), sort: gen littlen=_n
-			keep if littlen<=1000
-			drop commute_mainmode9 home_gor random littlen
+			bysort home_lad14cd mode4: gen bign=_N
+			gen threshold = 1000
+			gen weight = bign / threshold
+			recode weight min / 1 = 1 
+			keep if littlen<=threshold
+			drop commute_mainmode9 home_gor random littlen bign threshold
 			
 		* MAKE 1-WAY IDs
 			rename home_lsoa geo_code_o
 			rename work_lsoa geo_code_d
-			gen id=geo_code_o+" "+geo_code_d
-		
-		* GEN MAX DISTANCE
-			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)
-		
+			gen id=geo_code_o+" "+geo_code_d	
+			
+		* GEN MAX DISTANCE 
+			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)	
+					
 		* SAVE
-			order id geo_code_o geo_code_d home_lad14cd home_laname urban_lsoa within_lsoa_dist mode4 maxdist_mode //freq
+			order id geo_code_o geo_code_d weight home_lad14cd home_laname urban_lsoa within_lsoa_dist mode4 maxdist_mode //freq
 			keep id-maxdist_mode //freq
 			*duplicates drop
 			sort id
