@@ -61,8 +61,8 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			by home_lad14cd mode4 (random), sort: gen littlen=_n
 			bysort home_lad14cd mode4: gen bign=_N
 			gen threshold = 1000
-			gen weight = bign / threshold
-			recode weight min / 1 = 1 
+			gen lahome_weight = bign / threshold
+			recode lahome_weight min / 1 = 1 // if <
 			keep if littlen<=threshold
 			drop commute_mainmode9 home_gor random littlen bign threshold
 			
@@ -75,7 +75,7 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)	
 					
 		* SAVE
-			order id geo_code_o geo_code_d weight home_lad14cd home_laname urban_lsoa within_lsoa_dist mode4 maxdist_mode //freq
+			order id geo_code_o geo_code_d lahome_weight home_lad14cd home_laname urban_lsoa within_lsoa_dist mode4 maxdist_mode //freq
 			keep id-maxdist_mode //freq
 			*duplicates drop
 			sort id
