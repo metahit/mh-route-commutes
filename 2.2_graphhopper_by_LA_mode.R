@@ -10,7 +10,6 @@ for (i in 1:nrow(lines_toroute_mode)){
   routeid <- as.character(lines_toroute_mode@data$id[i])
   lahome_weight <- as.numeric(lines_toroute_mode@data$lahome_weight[i])
 
-  #print(i)
   leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, routeid = routeid, 
                                   weight = lahome_weight, vehicle = modename , legs = T)
 }

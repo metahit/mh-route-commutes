@@ -107,8 +107,8 @@ for(k in 1:4) {
   # Modify road types to 6-way type
   listrc$road_class <- "motorway"
   listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="urban"] <- "urban_primary"
-  listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
   listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="rural"] <- "rural_primary"
+  listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
   listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
   listrc$road_class[listrc$road_classcat==4 ] <- "out_of_scope"
   
@@ -127,7 +127,7 @@ for(k in 1:4) {
 
   # Reshape long to wide
   matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
-  matrc_all[is.na(matrc_all)] <- 0  
+  matrc_all[is.na(matrc_all)] <- 0 
   # Save
   write_csv(matrc_all, file.path(paste0("02_DataCreated/2_matrc_mode", mode, ".csv")))
 }

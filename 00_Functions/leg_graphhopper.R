@@ -65,10 +65,11 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     df <- data.frame(
       home_lad14cd = homearea,
       routeid = routeid,
+      home_lad14cd = homearea,
       lahome_weight = weight,
-      time = obj$paths$time / (1000 * 60),
-      dist = obj$paths$distance,
-      change_elev = change_elev
+      routetime = obj$paths$time / (1000 * 60),
+      routedist = obj$paths$distance / 1000,
+      routechange_elev = change_elev
     )
 
     route <- sp::SpatialLinesDataFrame(route, df)
@@ -80,8 +81,9 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     detailsdf <- data.frame(
       legid = (1:numlegs),
       routeid = routeid,
-      lahome_weight = weight,
       home_lad14cd = homearea,
+      lahome_weight = weight,
+      routedist = obj$paths$distance / 1000,
       start = as.numeric(obj$paths$details$road_class[[1]][,1]), 
       end = as.numeric(obj$paths$details$road_class[[1]][,2]), 
       road_class = obj$paths$details$road_class[[1]][,3]
