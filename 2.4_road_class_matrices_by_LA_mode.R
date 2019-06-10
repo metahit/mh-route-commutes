@@ -39,7 +39,7 @@ matrc$length[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classca
                                                                                 + (as.numeric(sum(lines_within$within_lsoa_dist[lines_within$home_lad14cd==lahome]))))
 
 # Add in a bit extra to capture URBAN within-LSOA routes
-lines_within_urban <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome & lines$urban_lsoa==1),]
+lines_within_urban <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome & lines$urban==1),]
 matrc$urban[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] <-  as.numeric(matrc$urban[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] 
              + (as.numeric(sum(lines_within_urban$within_lsoa_dist[lines_within_urban$home_lad14cd==lahome]))))
 

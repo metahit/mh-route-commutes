@@ -14,11 +14,6 @@ for(i in 1:length(latravellist$lad14cd)){
   }
 }
 
-# Add in a bit extra to capture within-LSOA routes
-lines_within <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome),]
-latravel <- lahome
-matla$length[(matla$lahome==lahome & matla$latravel==lahome)] <-  as.numeric(matla$length[(matla$lahome==lahome & matla$latravel==lahome)] 
-                                                                                + (as.numeric(sum(lines_within$within_lsoa_dist[lines_within$home_lad14cd==lahome]))))
 # Do percentages
 matla$plength <- matla$length/sum(matla$length)
 

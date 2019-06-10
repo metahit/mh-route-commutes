@@ -32,8 +32,12 @@ latravellist <- lad14[lad14$latravel==1,]
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
 # Load large files
-lines_all <- read.csv("02_DataCreated/1_sampleroutes.csv")
-cents_all <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
+lines_all <- read.csv("02_DataCreated/1_sampleroutes_small.csv")
+cents_lsoa <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
+cents_pcd <- read.csv(file.path("01_DataInput/pcd_cents/postcodes_england_latlong.csv"))
+coordinates(cents_pcd) <- ~longitude + latitude
+proj4string(cents_pcd) <- proj_4326
+cents_pcd <- spTransform(cents_pcd, proj_4326)
 
 # Run by LA
 for(j in 1:length(lahomelist$lad14cd)){

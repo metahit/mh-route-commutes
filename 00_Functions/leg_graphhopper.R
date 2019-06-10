@@ -2,7 +2,7 @@
 # Modified it to add road_class and return the values by leg, using the info from the API
 # https://graphhopper.com/api/1/route?point=49.932707,11.588051&point=50.3404,11.64705&vehicle=car&debug=true&type=json&details=road_class&[YOUR-KEY]
 
-leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
+leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, home_urban = NULL, routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
   
   # Convert character strings to lon/lat if needs be
   coords <- od_coords(from, to, l)
@@ -82,6 +82,7 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       legid = (1:numlegs),
       routeid = routeid,
       home_lad14cd = homearea,
+      urban = home_urban,
       lahome_weight = weight,
       routedist = obj$paths$distance / 1000,
       start = as.numeric(obj$paths$details$road_class[[1]][,1]), 
