@@ -34,15 +34,6 @@ for(rc in 1:4){
   }
 }
 
-# Add in a bit extra to capture within-LSOA routes - assume all on non-motorway, non-primary [?ok]
-matrc$length[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] <-  as.numeric(matrc$length[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] 
-                                                                                + (as.numeric(sum(lines_within$within_lsoa_dist[lines_within$home_lad14cd==lahome]))))
-
-# Add in a bit extra to capture URBAN within-LSOA routes
-lines_within_urban <- lines[(lines$e_dist_km==0 & lines$home_lad14cd==lahome & lines$urban==1),]
-matrc$urban[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] <-  as.numeric(matrc$urban[(matrc$lahome==lahome & matrc$latravel==lahome & matrc$road_classcat==3)] 
-             + (as.numeric(sum(lines_within_urban$within_lsoa_dist[lines_within_urban$home_lad14cd==lahome]))))
-
 # # Rejig to divide by type
 matrc$rural <- matrc$length - matrc$urban
 matrc$length <- NULL
