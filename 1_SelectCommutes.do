@@ -23,10 +23,6 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			drop if home_gor==10 									// Wales
 			drop if commute_mainmode9==6 | commute_mainmode9==8 	// modes not routing in Metahit
 			
-		* COMBINE CITY OF LONDON AND ISLES SCILLY
-			replace home_lad14cd="E09000033" if home_laname=="City of London"
-			replace home_lad14cd="E06000052" if home_laname=="Isles of Scilly"
-
 		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
 			recode commute_mainmode9 4/5=3 7=4, gen(mode4)
 			set seed 180426
