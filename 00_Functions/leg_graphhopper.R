@@ -1,6 +1,6 @@
 # Copy of stplanr's route_graphhopper function
 # Modified it to add road_class and return the values by leg, using the info from the API
-# https://graphhopper.com/api/1/route?point=49.932707,11.588051&point=50.3404,11.64705&vehicle=car&debug=true&type=json&details=road_class&[YOUR-KEY]
+# https://graphhopper.com/api/1/route?point=51.3962132601602%2C-2.36843038938123&point=51.380966%2C-2.3605781&vehicle=bike&details=road_class&locale=en-US&debug=true&points_encoded=false&key=9cead2b7-7cc0-4065-95a7-286efc161cd8
 
 leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, home_urban = NULL, routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
   
@@ -48,7 +48,7 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       stop("Invalid API key")
     }
   }
-  
+    
   if(legs == F ) {
     route <- sp::SpatialLines(list(sp::Lines(list(sp::Line(obj$paths$points[[2]][[1]][, 1:2])), ID = "1")))
     

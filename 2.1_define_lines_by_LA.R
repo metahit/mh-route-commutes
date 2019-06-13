@@ -16,7 +16,7 @@ if(!dir.exists(file.path(paste0("02_DataCreated/temp_matrix/",lahome)))) { dir.c
 saveRDS(lines, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines.Rds"))))
 
 # Restrict to selected between-zone lines
-lines_toroute_data <- lines[(lines$e_dist_km < lines$maxdist_mode) & !is.na(lines$e_dist_km) & lines$e_dist_km!=0,]
+lines_toroute_data <- lines[(lines$e_dist_km < lines$maxdist_mode) & !is.na(lines$e_dist_km) & lines$e_dist_km>0.05,]
 lines_toroute_data <- lines_toroute_data[,c("geo_code_o", "geo_code_d", "id", "home_lad14cd", "mode4", "urban", "lahome_weight", "e_dist_km")]
 lines_toroute_data <- lines_toroute_data[order(lines_toroute_data$id),]
 
