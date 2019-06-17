@@ -53,7 +53,7 @@ proj_27700 <- CRS("+init=epsg:27700")               # UK easting/northing projec
 ###########
 # Load built-up areas files
   builtup <- readOGR("01_DataInput/rural_urban/Builtup_Areas_December_2011_Boundaries_V2.shp")
-  builtup <- builtup[,names(builtup@data) %in% c("urban_bua")]
+  builtup <- builtup[,names(builtup@data) %in% c("urban_bua")] # this field identifies if has boundary 10,000 or more
   builtup <- spTransform(builtup, proj_4326)
   
 # Load injuries
