@@ -65,7 +65,7 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     df <- data.frame(
       home_lad14cd = homearea,
       routeid = routeid,
-      home_lad14cd = homearea,
+      urban = home_urban,
       lahome_weight = weight,
       routetime = obj$paths$time / (1000 * 60),
       routedist = obj$paths$distance / 1000,
