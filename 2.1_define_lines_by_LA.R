@@ -13,7 +13,7 @@ coords1 <- cents_pcd@coords[match(lines$geo_code_o, cents_pcd$home_postcode),] #
 coords2 <- cents_lsoa@coords[match(lines$geo_code_d, cents_lsoa$lsoa11cd),]
 lines$e_dist_km <- geosphere::distHaversine(p1 = coords1, p2 = coords2) / 1000 # assign euclidean dist
 if(!dir.exists(file.path(paste0("02_DataCreated/temp_matrix/",lahome)))) { dir.create(file.path(paste0("02_DataCreated/temp_matrix/",lahome))) }
-saveRDS(lines, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines.Rds"))))
+saveRDS(lines, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines.Rds"))), version = 2)
 
 # Restrict to selected between-zone lines
 lines_toroute_data <- lines[(lines$e_dist_km < lines$maxdist_mode) & !is.na(lines$e_dist_km) & lines$e_dist_km>0.05,]
@@ -25,5 +25,5 @@ lines_toroute_lines <- od2line(flow = lines_toroute_data, zones = cents_pcd, des
 rownames(lines_toroute_data) <- sapply(1:length(lines_toroute_lines), function(j) lines_toroute_lines@lines[[j]]@ID) # FORCE DATA ROW NAMES TO BE SAME AS ID IN LINES (in case don't start from '1')
 lines_toroute <- SpatialLinesDataFrame(sl = lines_toroute_lines, data = lines_toroute_data)
 lines_toroute <- spTransform(lines_toroute, proj_4326)
-saveRDS(lines_toroute, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds"))))
+saveRDS(lines_toroute, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds"))), version = 2)
 print(paste0("Lines saved for home LA ",lahome, " at ",Sys.time()))
