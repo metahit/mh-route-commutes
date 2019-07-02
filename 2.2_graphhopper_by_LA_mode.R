@@ -9,19 +9,21 @@ for (i in 1:nrow(lines_toroute_mode)){
   end_point <- coordinates(lines_toroute_mode[i,])[[1]][[1]][2,] %>% as.numeric()
   routeid <- as.character(lines_toroute_mode@data$id[i])
   urban <- as.character(lines_toroute_mode@data$urban[i])
+  urbanmatch <- as.character(lines_toroute_mode@data$urbanmatch[i])
   lahome_weight <- as.numeric(lines_toroute_mode@data$lahome_weight[i])
   if (i %in% c(1,100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000)) {
       print(i)
   }
 
-  leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, home_urban = urban, routeid = routeid, 
+  leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, home_urban = urban, home_urbanmatch = urbanmatch, routeid = routeid, 
                                   weight = lahome_weight, vehicle = modename , legs = T)
 }
 
 # Combine all routes/legs into a single spatialdataframe
 legs <- do.call(bind, leglist) 
+legs <- legs[legs@data$legid != 0,] # remove routes where start & end same place
 legs <- spTransform(legs, proj_27700)
-# mapview::mapview(legs)
-# (summary(legs@data$road_class))
+#mapview::mapview(legs)
+#(summary(legs@data$road_class))
 saveRDS(legs, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/legs_mode",mode,".Rds"))), version = 2)
 print(paste0("Routing done for home LA ",lahome, " and mode ", mode, " at ",Sys.time()))

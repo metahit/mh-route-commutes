@@ -28,11 +28,6 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			gen urbanmatch=urban
 			recode urbanmatch 1=0 if lahome_purban<.1
 			recode urbanmatch 0=1 if lahome_purban>.9
-			preserve
-			keep home_lad14cd lahome_purban
-			duplicates drop
-			br
-			restore
 					
 		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
 			set seed 180426
