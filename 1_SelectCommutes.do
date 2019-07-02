@@ -8,7 +8,6 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			recode trip_mainmode 1=2 2=1 3/5=3 6=. 7/9=4 10/max=., gen(mode4)
 			bysort mode4: egen topp = pctile(trip_distraw_km), p(98)
 			tab mode4, sum(topp)
-			
 	*/
 		
 	*****************
@@ -23,18 +22,30 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			drop if home_gor==10 									// Wales
 			drop if commute_mainmode9==6 | commute_mainmode9==8 	// modes not routing in Metahit
 			
-		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
+		* CALCULATE % AREA THAT IS URBAN, AND GIVE EACH PERSON THEIR URBAN MATCH TYPE
 			recode commute_mainmode9 4/5=3 7=4, gen(mode4)
+			bysort home_lad14cd mode4: egen lahome_purban=mean(urban)
+			gen urbanmatch=urban
+			recode urbanmatch 1=0 if lahome_purban<.1
+			recode urbanmatch 0=1 if lahome_purban>.9
+			preserve
+			keep home_lad14cd lahome_purban
+			duplicates drop
+			br
+			restore
+					
+		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
 			set seed 180426
 			gen random=uniform()
 			by home_lad14cd mode4 (random), sort: gen littlen=_n
 			bysort home_lad14cd mode4: gen bign=_N
-			gen threshold = 50 // 1000
+			gen threshold = 1000 // 50			
 			gen lahome_weight = bign / threshold
 			recode lahome_weight min / 1 = 1 // if <1000, everyone included and counts for selves
-			keep if littlen<=threshold
-			drop commute_mainmode9 home_gor random littlen bign threshold
-			
+			keep if littlen<=threshold			
+			*bysort home_lad14cd mode4 urbanmatch: gen bign2=_N
+			*ta bign2  // Examine how many people per urbanmatch type: always at least 40
+				
 		* MAKE 1-WAY IDs
 			rename home_postcode geo_code_o
 			rename work_lsoa geo_code_d
@@ -44,8 +55,8 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)	
 					
 		* SAVE
-			order id geo_code_o geo_code_d lahome_weight home_lad14cd home_laname urban mode4 maxdist_mode
+			order id geo_code_o geo_code_d home_lad14cd home_laname lahome_weight lahome_purban urban urbanmatch mode4 maxdist_mode
 			keep id-maxdist_mode 
 			sort id
-		*	export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes.csv", replace
-			export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes_small.csv", replace
+			export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes.csv", replace
+		*	export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes_small.csv", replace
