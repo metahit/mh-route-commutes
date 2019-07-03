@@ -32,7 +32,7 @@ latravellist <- lad14[lad14$latravel==1,]
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
 # Load large files
-lines_all <- read.csv("02_DataCreated/1_sampleroutes_small.csv")
+lines_all <- read.csv("02_DataCreated/1_sampleroutes.csv")
 cents_lsoa <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
 cents_pcd <- read.csv(file.path("01_DataInput/pcd_cents/postcodes_england_latlong.csv"))
 coordinates(cents_pcd) <- ~longitude + latitude
@@ -64,7 +64,6 @@ for(j in 1:length(lahomelist$lad14cd)){
   lahome <- as.character(lahomelist$lad14cd[j])
   
   # Load lines files
-  lines <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines.Rds")))
   lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
 
   # Create matrices by mode
@@ -75,6 +74,7 @@ for(j in 1:length(lahomelist$lad14cd)){
     source("2.4_road_class_matrices_by_LA_mode.R")
   }
 }
+
 
 ####################
 # PART 3: REJOIN MATRICES
@@ -114,7 +114,7 @@ for(k in 1:4) {
   listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="rural"] <- "rural_primary"
   listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
   listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
-  listrc$road_class[listrc$road_classcat==4 ] <- "out_of_scope"
+  listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
   
   # Multiply up by weights & sum weighted lengths across LAs
   listrc$weightlength <- listrc$lahome_weight * listrc$length
