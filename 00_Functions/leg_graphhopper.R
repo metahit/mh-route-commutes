@@ -52,15 +52,6 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
   if(legs == F ) {
     route <- sp::SpatialLines(list(sp::Lines(list(sp::Line(obj$paths$points[[2]][[1]][, 1:2])), ID = "1")))
     
-    climb <- NA # to set elev variable up
-    
-    # get elevation data if it was a bike trip
-    if (vehicle == "bike") {
-      change_elev <- obj$path$descend + obj$paths$ascend
-    } else {
-      change_elev <- NA
-    }
-    
     # Attribute data for the route
     df <- data.frame(
       home_lad14cd = homearea,
@@ -70,7 +61,7 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       lahome_weight = weight,
       routetime = obj$paths$time / (1000 * 60),
       routedist = obj$paths$distance / 1000,
-      routechange_elev = change_elev
+      routechange_elev = obj$path$descend + obj$paths$ascend
     )
 
     route <- sp::SpatialLinesDataFrame(route, df)
@@ -87,6 +78,7 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       urbanmatch = home_urbanmatch,
       lahome_weight = weight,
       routedist = obj$paths$distance / 1000,
+      routechange_elev = obj$path$descend + obj$paths$ascend,
       start = as.numeric(obj$paths$details$road_class[[1]][,1]), 
       end = as.numeric(obj$paths$details$road_class[[1]][,2]), 
       road_class = obj$paths$details$road_class[[1]][,3]
