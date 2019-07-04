@@ -15,21 +15,19 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 	*****************
 		use "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\SPindivid_CensusNTSAPS_Eng.dta", clear
 			keep home_lsoa home_postcode home_lad14cd home_laname home_gor work_lsoa urban commute_mainmode9
+bysort home_lad14cd: egen lahome_purban=mean(urban)
+gen urbanmatch=urban
+recode urbanmatch 1=0 if lahome_purban<.1
+recode urbanmatch 0=1 if lahome_purban>.9 // remove this once have re-run creation SP files			
 			
 		* DROP OD PAIRS NOT IN SCOPE
 			drop if work_lsoa=="OD0000001" | work_lsoa=="" 			// Work from home and non-commuters
 			drop if work_lsoa=="OD0000002" | work_lsoa=="OD0000003" | work_lsoa=="OD0000004" | work_lsoa=="S92000003" | work_lsoa=="N92000002"	// No fixed workplace or overseas
 			drop if home_gor==10 									// Wales
 			drop if commute_mainmode9==6 | commute_mainmode9==8 	// modes not routing in Metahit
-			
-		* CALCULATE % AREA THAT IS URBAN, AND GIVE EACH PERSON THEIR URBAN MATCH TYPE
-			recode commute_mainmode9 4/5=3 7=4, gen(mode4)
-			bysort home_lad14cd mode4: egen lahome_purban=mean(urban)
-			gen urbanmatch=urban
-			recode urbanmatch 1=0 if lahome_purban<.1
-			recode urbanmatch 0=1 if lahome_purban>.9
 					
 		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
+			recode commute_mainmode9 4/5=3 7=4, gen(mode4)
 			set seed 180426
 			gen random=uniform()
 			by home_lad14cd mode4 (random), sort: gen littlen=_n
@@ -50,7 +48,7 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			recode mode4 1=19.3 2=4.8 3=72.4 4=27.4 , gen(maxdist_mode)	
 					
 		* SAVE
-			order id geo_code_o geo_code_d home_lad14cd home_laname lahome_weight lahome_purban urban urbanmatch mode4 maxdist_mode
+			order id geo_code_o geo_code_d home_lad14cd home_laname lahome_weight urban urbanmatch mode4 maxdist_mode
 			keep id-maxdist_mode 
 			sort id
 			export delimited using "mh-route-commutes\02_DataCreated\1_sampleroutes.csv", replace
