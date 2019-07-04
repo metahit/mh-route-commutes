@@ -2,7 +2,7 @@
 # Modified it to add road_class and return the values by leg, using the info from the API
 # https://graphhopper.com/api/1/route?point=51.3962132601602%2C-2.36843038938123&point=51.380966%2C-2.3605781&vehicle=bike&details=road_class&locale=en-US&debug=true&points_encoded=false&key=9cead2b7-7cc0-4065-95a7-286efc161cd8
 
-leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, home_urban = NULL, home_urbanmatch = NULL,routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
+leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NULL, home_urbanmatch = NULL,routeid = NULL, weight = NULL, silent = TRUE, pat = NULL, base_url = "https://graphhopper.com", legs = F  ) {
   
   # Convert character strings to lon/lat if needs be
   coords <- od_coords(from, to, l)
@@ -56,7 +56,6 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
     df <- data.frame(
       home_lad14cd = homearea,
       routeid = routeid,
-      urban = home_urban,
       urbanmatch = home_urbanmatch,
       lahome_weight = weight,
       routetime = obj$paths$time / (1000 * 60),
@@ -74,7 +73,6 @@ leg_graphhopper <- function(from, to, l = NULL, vehicle = "bike", homearea = NUL
       legid = (1:numlegs),
       routeid = routeid,
       home_lad14cd = homearea,
-      urban = home_urban,
       urbanmatch = home_urbanmatch,
       lahome_weight = weight,
       routedist = obj$paths$distance / 1000,

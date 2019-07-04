@@ -59,17 +59,40 @@ lad14shape <- spTransform(lad14shape, proj_27700)
 # geojson_write(lad14builtup, file = ("01_DataInput/lad14_by_builtup/lad14builtup.geojson"))
 lad14builtup <- readOGR("01_DataInput/lad14_by_builtup/lad14builtup.geojson")
 
-# Run by LA and mode
+# Route lines by LA and mode
 for(j in 1:length(lahomelist$lad14cd)){
   lahome <- as.character(lahomelist$lad14cd[j])
   
-  # Load lines files
-  lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
-
-  # Create matrices by mode
   for(k in (1:4)){
     mode <- as.numeric(k)
+    lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
     source("2.2_graphhopper_by_LA_mode.R")
+  }
+}
+  
+# Create matrices by LA and mode
+for(j in 1:length(lahomelist$lad14cd)){
+  lahome <- as.character(lahomelist$lad14cd[j])
+  
+  for(k in (1:2)){
+    mode <- as.numeric(k)
+  
+    # Recode road class
+    legs <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/legs_mode",mode,".Rds")))
+    legs@data$road_classcat <- 3
+    legs@data$road_classcat[legs@data$road_class %in% c("motorway")] <- 1
+    legs@data$road_classcat[legs@data$road_class %in% c("trunk", "primary", "motorroad")] <- 2
+    legs@data$road_classcat[legs@data$road_class %in% c("path", "steps", "forestry")] <- 4 # judge these are out of stats19 scope, although NB path might be in scope if a footway next a road. See https://github.com/metahit/mh-route-commutes/tree/master/02_DataCreated/national_data_test
+    # https://wiki.openstreetmap.org/wiki/Key:highway
+    # https://github.com/graphhopper/graphhopper/blob/35b58ddbe8e3aeecd310cf83f637211a6f784093/core/src/main/java/com/graphhopper/routing/profiles/RoadClass.java#L4-L9 
+    
+    # Define route type
+    legs@data$routelong <- ifelse((legs@data$routedist < 5 | mode ==2), 0, 1)
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routelong==0] <- as.character("u0d0")
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routelong==1] <- as.character("u0d1")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==0] <- as.character("u1d0")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==1] <- as.character("u1d1")
+    
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
   }
@@ -82,57 +105,64 @@ for(j in 1:length(lahomelist$lad14cd)){
 # Join LA matrices to single list by mode
 for(k in 1:4) {
   mode <- as.numeric(k)
+  for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   # Add files together in a list
-  lahome <- as.character(lahomelist$lad14cd[1])
-  listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, ".csv")))
-  for(j in 2:length(lahomelist$lad14cd)){
-    lahome <- as.character(lahomelist$lad14cd[j])
-    nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, ".csv")))
-    listla <- full_join(listla, nextfilela)
-  }
-  # Reshape long to wide
-    matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
-    matla_all[is.na(matla_all)] <- 0  
+    lahome <- as.character(lahomelist$lad14cd[1])
+    listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
+    for(j in 2:length(lahomelist$lad14cd)){
+      lahome <- as.character(lahomelist$lad14cd[j])
+      nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
+      listla <- full_join(listla, nextfilela)
+    }
+    # Reshape long to wide
+      matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
+      matla_all[is.na(matla_all)] <- 0  
   # Save
-    write_csv(matla_all, file.path(paste0("02_DataCreated/2_matla_mode", mode, ".csv")))
+    write_csv(matla_all, file.path(paste0("02_DataCreated/2_matla_mode", mode, "_", routetype, ".csv")))
+  }
 }
 
 # Join RC matrices to single list by mode
 for(k in 1:4) {
   mode <- as.numeric(k)
+  for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   # Add files together in a list
   lahome <- as.character(lahomelist$lad14cd[1])
-  listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, ".csv")))
+  listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
   for(j in 2:length(lahomelist$lad14cd)){
     lahome <- as.character(lahomelist$lad14cd[j])
-    nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, ".csv")))
+    nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
     listrc <- full_join(listrc, nextfilela)
   }
-  # Modify road types to 6-way type
-  listrc$road_class <- "motorway"
-  listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="urban"] <- "urban_primary"
-  listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="rural"] <- "rural_primary"
-  listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
-  listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
-  listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
+  listrc  <- listrc[listrc$latravel!="x",] 
+  if(nrow(listrc)!=0) {
+    # Modify road types to 6-way type
+    listrc$road_class <- "motorway"
+    listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="urban"] <- "urban_primary"
+    listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="rural"] <- "rural_primary"
+    listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
+    listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
+    listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
+    
+    # Multiply up by weights & sum weighted lengths across LAs
+    listrc$weightlength <- listrc$lahome_weight * listrc$length
+    listrc <- listrc[,c("latravel", "road_class", "weightlength")]
+    listrc <- aggregate(. ~latravel+road_class, data=listrc, sum, na.rm=TRUE)
   
-  # Multiply up by weights & sum weighted lengths across LAs
-  listrc$weightlength <- listrc$lahome_weight * listrc$length
-  listrc <- listrc[,c("latravel", "road_class", "weightlength")]
-  listrc <- aggregate(. ~latravel+road_class, data=listrc, sum, na.rm=TRUE)
-
-  # Create a percentage
-  listrc2 <- listrc[,c("latravel", "weightlength")]
-  listrc2 <- dplyr::rename(listrc2, laweightlength = weightlength)
-  listrc2 <- aggregate(. ~latravel, data=listrc2, sum, na.rm=TRUE)
-  listrc <- left_join(listrc, listrc2, by = "latravel")
-  listrc$plength <- listrc$weightlength / listrc$laweightlength
-  listrc <- listrc[,c("latravel", "road_class", "plength")]
-
-  # Reshape long to wide
-  matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
-  matrc_all[is.na(matrc_all)] <- 0 
-  # Save
-  write_csv(matrc_all, file.path(paste0("02_DataCreated/2_matrc_mode", mode, ".csv")))
+    # Create a percentage
+    listrc2 <- listrc[,c("latravel", "weightlength")]
+    listrc2 <- dplyr::rename(listrc2, laweightlength = weightlength)
+    listrc2 <- aggregate(. ~latravel, data=listrc2, sum, na.rm=TRUE)
+    listrc <- left_join(listrc, listrc2, by = "latravel")
+    listrc$plength <- listrc$weightlength / listrc$laweightlength
+    listrc <- listrc[,c("latravel", "road_class", "plength")]
+  
+    # Reshape long to wide
+    matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
+    matrc_all[is.na(matrc_all)] <- 0 
+    # Save
+    write_csv(matrc_all, file.path(paste0("02_DataCreated/2_matrc_mode", mode, "_", routetype,".csv")))
+  }
+  }
 }
-##TO DO: change matrices to save to mh-execute/input
+##TO DO: change matrices to save to mh-execute/input, once finalised
