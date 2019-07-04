@@ -59,24 +59,17 @@ lad14shape <- spTransform(lad14shape, proj_27700)
 # geojson_write(lad14builtup, file = ("01_DataInput/lad14_by_builtup/lad14builtup.geojson"))
 lad14builtup <- readOGR("01_DataInput/lad14_by_builtup/lad14builtup.geojson")
 
-# Route lines by LA and mode
 for(j in 1:length(lahomelist$lad14cd)){
   lahome <- as.character(lahomelist$lad14cd[j])
   
   for(k in (1:4)){
     mode <- as.numeric(k)
+    
+# Route lines by LA and mode
     lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
     source("2.2_graphhopper_by_LA_mode.R")
-  }
-}
-  
+
 # Create matrices by LA and mode
-for(j in 1:length(lahomelist$lad14cd)){
-  lahome <- as.character(lahomelist$lad14cd[j])
-  
-  for(k in (1:2)){
-    mode <- as.numeric(k)
-  
     # Recode road class
     legs <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/legs_mode",mode,".Rds")))
     legs@data$road_classcat <- 3
