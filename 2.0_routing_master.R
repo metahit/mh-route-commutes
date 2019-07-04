@@ -107,11 +107,14 @@ for(k in 1:4) {
       nextfilela <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
       listla <- full_join(listla, nextfilela)
     }
+    listla <- listla[listla$latravel!="x",]
+    if(nrow(listla)!=0) {
     # Reshape long to wide
       matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
       matla_all[is.na(matla_all)] <- 0  
   # Save
     write_csv(matla_all, file.path(paste0("02_DataCreated/2_matla_mode", mode, "_", routetype, ".csv")))
+    }
   }
 }
 
