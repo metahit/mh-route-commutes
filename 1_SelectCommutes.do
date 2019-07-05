@@ -14,11 +14,7 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 	** SELECT ROUTE SAMPLE FROM CENSUS DATA
 	*****************
 		use "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\SPindivid_CensusNTSAPS_Eng.dta", clear
-			keep home_lsoa home_postcode home_lad14cd home_laname home_gor work_lsoa urban commute_mainmode9
-bysort home_lad14cd: egen lahome_purban=mean(urban)
-gen urbanmatch=urban
-recode urbanmatch 1=0 if lahome_purban<.1
-recode urbanmatch 0=1 if lahome_purban>.9 // remove this once have re-run creation SP files			
+			keep home_lsoa home_postcode home_lad14cd home_laname home_gor work_lsoa urban urbanmatch commute_mainmode9
 			
 		* DROP OD PAIRS NOT IN SCOPE
 			drop if work_lsoa=="OD0000001" | work_lsoa=="" 			// Work from home and non-commuters
