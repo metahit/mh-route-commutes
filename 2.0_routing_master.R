@@ -113,7 +113,7 @@ for(k in 1:4) {
       matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
       matla_all[is.na(matla_all)] <- 0  
   # Save
-    write_csv(matla_all, file.path(paste0("02_DataCreated/2_matla_mode", mode, "_", routetype, ".csv")))
+    write_csv(matla_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype, "_matla.csv")))
     }
   }
 }
@@ -157,8 +157,7 @@ for(k in 1:4) {
     matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
     matrc_all[is.na(matrc_all)] <- 0 
     # Save
-    write_csv(matrc_all, file.path(paste0("02_DataCreated/2_matrc_mode", mode, "_", routetype,".csv")))
+    write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
   }
   }
 }
-##TO DO: change matrices to save to mh-execute/input, once finalised
