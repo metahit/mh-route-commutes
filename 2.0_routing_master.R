@@ -109,10 +109,15 @@ for(k in 1:4) {
     }
     listla <- listla[listla$latravel!="x",]
     if(nrow(listla)!=0) {
+    
     # Reshape long to wide
       matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
       matla_all[is.na(matla_all)] <- 0  
-  # Save
+    
+    # Rename routetype for walking, and save
+    if(mode==2) {
+      routetype <- ifelse(routetype=="u0d0", "u0", "u1")
+    } 
     write_csv(matla_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype, "_matla.csv")))
     }
   }
@@ -156,7 +161,11 @@ for(k in 1:4) {
     # Reshape long to wide
     matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
     matrc_all[is.na(matrc_all)] <- 0 
-    # Save
+    
+    # Rename routetype for walking, and save
+    if(mode==2) {
+      routetype <- ifelse(routetype=="u0d0", "u0", "u1")
+    } 
     write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
   }
   }
