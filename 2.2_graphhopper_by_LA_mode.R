@@ -12,13 +12,14 @@ for (i in 1:nrow(lines_toroute_mode)){
   urbanmatch <- as.character(lines_toroute_mode@data$urbanmatch[i])
   lahome_weight <- as.numeric(lines_toroute_mode@data$lahome_weight[i])
 
-    if (i %in% c(1,1000,2000,3000,4000,5000)) {
+    if (i %in% c(1,20,40,500,1000,5000)) {
       print(i)
   }
 
   leglist[[i]] <- leg_graphhopper(start_point, end_point, homearea = lahome, workarea = lawork, home_urbanmatch = urbanmatch, routeid = routeid, 
                                   weight = lahome_weight, vehicle = modename , legs = T)
 }
+saveRDS(leglist, (file.path(paste0("02_DataCreated/temp/graphhopper_leglists_1907nat/",lahome,"_mode",mode,".Rds"))), version = 2)
 
 # Combine all routes/legs into a single spatialdataframe
 legs <- do.call(bind, leglist) 
