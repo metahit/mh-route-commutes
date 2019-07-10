@@ -32,7 +32,7 @@ latravellist <- lad14[lad14$latravel==1,]
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
 # Load large files
-lines_all <- read.csv("02_DataCreated/1_sampleroutes.csv")
+lines_all <- read.csv("02_DataCreated/1_sampleroutes_small.csv")
 cents_lsoa <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
 cents_pcd <- read.csv(file.path("01_DataInput/pcd_cents/postcodes_england_latlong.csv"))
 coordinates(cents_pcd) <- ~longitude + latitude
@@ -66,8 +66,8 @@ for(j in 1:length(lahomelist$lad14cd)){
     mode <- as.numeric(k)
     
 # Route lines by LA and mode
-    lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
-    source("2.2_graphhopper_by_LA_mode.R")
+     lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
+     source("2.2_graphhopper_by_LA_mode.R")
 
 # Create matrices by LA and mode
     # Recode road class
@@ -85,7 +85,7 @@ for(j in 1:length(lahomelist$lad14cd)){
     legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routelong==1] <- as.character("u0d1")
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==0] <- as.character("u1d0")
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==1] <- as.character("u1d1")
-    
+
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
   }

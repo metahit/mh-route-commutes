@@ -4,7 +4,7 @@
 for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
-  
+  laworklist <- unique(legsuse@data$work_lad14cd) 
   
   if (nroute==0) {
     print(paste0("Empty for ", routetype))
@@ -18,8 +18,8 @@ for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
     for(rc in 1:4){
       if(nrow(legsuse[legsuse@data$home_lad14cd==lahome & legsuse@data$road_classcat==rc,])==0) {
       } else {
-        for(i in 1:length(latravellist$lad14cd)){
-          latravel <- as.character(latravellist$lad14cd[i])
+        for(i in 1:length(laworklist)){
+          latravel <- as.character(laworklist[i])
           if(is.null(intersect(legsuse[legsuse@data$road_classcat==rc,], lad14shape[lad14shape@data$lad15cd==latravel,]))) {
           } else {
             matrc[nrow(matrc) + 1,] = list(lahome,lahome_weight,latravel, rc,NA,NA)

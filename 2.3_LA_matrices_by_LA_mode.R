@@ -5,6 +5,8 @@
 for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
+  laworklist <- unique(legsuse@data$work_lad14cd) # assume any la of travel has at least one person working there
+  
   matla <- data.frame("lahome"= character(0), "latravel"=character(0),"nroute"=numeric(0), "length"=numeric(0), "plength"=numeric(0),stringsAsFactors=FALSE)
   
   if (nroute==0) {
@@ -13,13 +15,10 @@ for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
     
   } else {
     print(paste0("LA mat for ", routetype))
-    for(i in 1:length(latravellist$lad14cd)){
-      latravel <- as.character(latravellist$lad14cd[i])
-      if(is.null(intersect(legsuse, lad14shape[lad14shape@data$lad15cd==latravel,]))) {
-      } else {
-        matla[nrow(matla) + 1,] = list(lahome,latravel, nroute ,NA)
-        matla$length[(matla$lahome==lahome & matla$latravel==latravel)] <- (lineLength(intersect(legsuse, lad14shape[lad14shape@data$lad15cd==latravel,]), byid = FALSE)) / 1000
-      }
+    for(i in 1:length(laworklist)){
+      latravel <- as.character(laworklist[i])
+      matla[nrow(matla) + 1,] = list(lahome,latravel, nroute ,NA)
+      matla$length[(matla$lahome==lahome & matla$latravel==latravel)] <- (lineLength(intersect(legsuse, lad14shape[lad14shape@data$lad15cd==latravel,]), byid = FALSE)) / 1000
     }
     # Do percentages
     matla$plength <- matla$length/sum(matla$length)
