@@ -32,7 +32,7 @@ latravellist <- lad14[lad14$latravel==1,]
 # PART 1: MAKE LINES SPATIAL (by LA)
 ####################
 # Load large files
-lines_all <- read.csv("02_DataCreated/1_sampleroutes_small.csv")
+lines_all <- read.csv("02_DataCreated/1_sampleroutes.csv")
 cents_lsoa <- readOGR(file.path("01_DataInput/lsoa_cents/lsoa_cents_mod.geojson"))
 cents_pcd <- read.csv(file.path("01_DataInput/pcd_cents/postcodes_england_latlong.csv"))
 coordinates(cents_pcd) <- ~longitude + latitude
@@ -67,7 +67,12 @@ for(j in 1:length(lahomelist$lad14cd)){
     
 # Route lines by LA and mode
      lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
-     source("2.2_graphhopper_by_LA_mode.R")
+     modename <- inputdf$modename[inputdf$mode== mode]
+     lines_toroute_mode <- lines_toroute[lines_toroute@data$mode4==mode,]
+     lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
+
+     source("2.2a_graphhopper_route.R")
+     source("2.2b_graphhopper_prepare.R")
 
 # Create matrices by LA and mode
     # Recode road class
