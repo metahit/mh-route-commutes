@@ -17,10 +17,10 @@ proj_27700 <- CRS("+init=epsg:27700")               # UK easting/northing projec
 # PART 0 : SET UP
 ####################
 
-# Define input params [NB for now routing buses as trucks]
+# Define input params [NB for now routing motorbikes as cars, buses as trucks]
 inputdf <- data.frame(
-  mode = c(1:4),
-  modename = c("bike", "foot", "car", "truck")  
+  mode = c(1:5),
+  modename = c("bike", "foot", "car", "car", "truck")  
 )
 
 # Define LA list
@@ -62,13 +62,13 @@ lad14builtup <- readOGR("01_DataInput/lad14_by_builtup/lad14builtup.geojson")
 for(j in 1:length(lahomelist$lad14cd)){
   lahome <- as.character(lahomelist$lad14cd[j])
   
-  for(k in (1:4)){
+  for(k in (1:5)){
     mode <- as.numeric(k)
     
 # Route lines by LA and mode
      lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
      modename <- inputdf$modename[inputdf$mode== mode]
-     lines_toroute_mode <- lines_toroute[lines_toroute@data$mode4==mode,]
+     lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
      lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
 
      source("2.2a_graphhopper_route.R")
@@ -101,7 +101,7 @@ for(j in 1:length(lahomelist$lad14cd)){
 # PART 3: REJOIN MATRICES
 ####################
 # Join LA matrices to single list by mode
-for(k in 1:4) {
+for(k in 1:5) {
   mode <- as.numeric(k)
   for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   # Add files together in a list
@@ -129,7 +129,7 @@ for(k in 1:4) {
 }
 
 # Join RC matrices to single list by mode
-for(k in 1:4) {
+for(k in 1:5) {
   mode <- as.numeric(k)
   for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   # Add files together in a list
