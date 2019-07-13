@@ -15,7 +15,6 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 	*****************
 		use "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\SPindivid_CensusNTSAPS_Eng.dta", clear
 			keep home_lsoa home_postcode home_lad14cd home_laname home_gor work_lsoa urban urbanmatch commute_mainmode9
-keep if home_gor==9			
 			
 		* DROP OD PAIRS NOT IN SCOPE
 			drop if work_lsoa=="OD0000001" | work_lsoa=="" 			// Work from home and non-commuters
