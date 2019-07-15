@@ -24,8 +24,9 @@ cd "C:\Users\Anna Goodman\Dropbox\GitHub"
 			drop if workcountry=="W"								// work in Wales
 			drop if commute_mainmode9==6 | commute_mainmode9==8 	// modes not routing in Metahit
 
-		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for?]
+		* RANDOMLY SELECT BY LA BY MODE, AND GENERATE WEIGHTS [how many people does each commuter stand for]
 			recode commute_mainmode9 4=3 5=4 7=5, gen(mode5)
+			sort home_postcode work_lsoa
 			set seed 180426
 			gen random=uniform()
 			by home_lad14cd mode5 (random), sort: gen littlen=_n
