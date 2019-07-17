@@ -4,7 +4,11 @@
 for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
-  laworklist <- unique(legsuse@data$work_lad14cd) 
+  # assume any la of travel has at least one person working there, plus add in home LA
+  laworklist <- unique(legs@data$work_lad14cd) 
+  newpos <- length(laworklist) + 1
+  laworklist[newpos] <- lahome
+  laworklist <- unique(laworklist)
   
   if (nroute==0) {
     print(paste0("Empty for ", routetype))
@@ -20,9 +24,10 @@ for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
       } else {
         for(i in 1:length(laworklist)){
           latravel <- as.character(laworklist[i])
+          matrc[nrow(matrc) + 1,] = list(lahome,lahome_weight,latravel, rc,NA,NA)
           if(is.null(intersect(legsuse[legsuse@data$road_classcat==rc,], lad14shape[lad14shape@data$lad15cd==latravel,]))) {
+            matrc$length[(matrc$lahome==lahome & matrc$latravel==latravel & matrc$road_classcat==rc)] <- 0
           } else {
-            matrc[nrow(matrc) + 1,] = list(lahome,lahome_weight,latravel, rc,NA,NA)
             matrc$length[(matrc$lahome==lahome & matrc$latravel==latravel & matrc$road_classcat==rc)] <- (lineLength(intersect(legsuse[legsuse@data$road_classcat==rc,], lad14shape[lad14shape@data$lad15cd==latravel,]), byid = FALSE)) / 1000
           }
           if(is.null(intersect(legsuse[legsuse@data$road_classcat==rc,], lad14builtup[lad14builtup@data$lad15cd==latravel,]))) {
@@ -33,6 +38,8 @@ for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
         }
       }
     }
+    # Remove if length is zero
+    matrc <- matrc[matrc$length!=0,]
     
     # # Rejig to divide by type
     matrc$rural <- matrc$length - matrc$urban
