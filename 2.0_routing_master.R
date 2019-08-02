@@ -65,14 +65,14 @@ for(j in 1:length(lahomelist$lad14cd)){
   for(k in (1:5)){
     mode <- as.numeric(k)
     
-# Route lines by LA and mode
-     lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
-     modename <- inputdf$modename[inputdf$mode== mode]
-     lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
-     lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
-
-     source("2.2a_graphhopper_route.R")
-     source("2.2b_graphhopper_prepare.R")
+# # Route lines by LA and mode
+#      lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
+#      modename <- inputdf$modename[inputdf$mode== mode]
+#      lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
+#      lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
+# 
+#      source("2.2a_graphhopper_route.R")
+#      source("2.2b_graphhopper_prepare.R")
 
 # Create matrices by LA and mode
     # Recode road class
@@ -85,17 +85,26 @@ for(j in 1:length(lahomelist$lad14cd)){
     # https://github.com/graphhopper/graphhopper/blob/35b58ddbe8e3aeecd310cf83f637211a6f784093/core/src/main/java/com/graphhopper/routing/profiles/RoadClass.java#L4-L9 
     
     # Define route type
-    legs@data$routelong <- ifelse((legs@data$routedist < 5 | mode ==2), 0, 1)
-    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routelong==0] <- as.character("u0d0")
-    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routelong==1] <- as.character("u0d1")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==0] <- as.character("u1d0")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routelong==1] <- as.character("u1d1")
+    legs@data$routedistcat <-as.numeric(cut(legs@data$routedist, c(0,5,15,40,100), labels=c(1:4)))
+    if (mode==2){
+      legs@data$routedistcat <- 1  # walking always lowest cat
+    } 
+    if (mode %in% c(1, 5)) {
+      legs@data$routedistcat[legs@data$routedistcat==4] <- 3 # bike + bus at most level 3
+    }
+    legs@data$routetype <- "u0d1"
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==2] <- as.character("u0d2")
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==3] <- as.character("u0d3")
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==4] <- as.character("u0d4")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==1] <- as.character("u1d1")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==2] <- as.character("u1d2")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==3] <- as.character("u1d3")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==4] <- as.character("u1d4")
 
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
   }
 }
-
 
 ####################
 # PART 3: REJOIN MATRICES
@@ -103,7 +112,7 @@ for(j in 1:length(lahomelist$lad14cd)){
 # Join LA matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
+  for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
   # Add files together in a list
     lahome <- as.character(lahomelist$lad14cd[1])
     listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
@@ -121,7 +130,7 @@ for(k in 1:5) {
     
     # Rename routetype for walking, and save
     if(mode==2) {
-      routetype <- ifelse(routetype=="u0d0", "u0", "u1")
+      routetype <- ifelse(routetype=="u0d1", "u0", "u1")
     } 
     write_csv(matla_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype, "_matla.csv")))
     }
@@ -131,7 +140,7 @@ for(k in 1:5) {
 # Join RC matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
+  for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
   # Add files together in a list
   lahome <- as.character(lahomelist$lad14cd[1])
   listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
@@ -169,7 +178,7 @@ for(k in 1:5) {
     
     # Rename routetype for walking, and save
     if(mode==2) {
-      routetype <- ifelse(routetype=="u0d0", "u0", "u1")
+      routetype <- ifelse(routetype=="u0d1", "u0", "u1")
     } 
     write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
   }

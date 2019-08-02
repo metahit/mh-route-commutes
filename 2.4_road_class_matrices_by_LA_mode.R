@@ -1,14 +1,10 @@
 ####################
 ## Make road class matrix
 ####################
-for (routetype in c("u0d0", "u0d1", "u1d0", "u1d1")) {
+for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
-  # assume any la of travel has at least one person working there, plus add in home LA
-  laworklist <- unique(legs@data$work_lad14cd) 
-  newpos <- length(laworklist) + 1
-  laworklist[newpos] <- lahome
-  laworklist <- unique(laworklist)
+  laworklist <- unique(legs@data$work_lad14cd) # assume any significant LA of travel has at least one person working there
   
   if (nroute==0) {
     print(paste0("Empty for ", routetype))

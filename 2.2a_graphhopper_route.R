@@ -5,7 +5,7 @@ for (i in 1:nrow(lines_toroute_mode)){
   end_point <- coordinates(lines_toroute_mode[i,])[[1]][[1]][2,] %>% as.numeric()
   routeid <- as.character(lines_toroute_mode@data$id[i])
 
-  if (i %in% c(1,500,1000,5000)) {
+  if (i %in% c(1,25,500,1000,5000)) {
       print(i)
   }
   leglist[[i]] <- leg_graphhopper(start_point, end_point,  routeid = routeid, vehicle = modename , legs = T)
