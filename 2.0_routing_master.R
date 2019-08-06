@@ -65,14 +65,14 @@ for(j in 1:length(lahomelist$lad14cd)){
   for(k in (1:5)){
     mode <- as.numeric(k)
     
-# # Route lines by LA and mode
-#      lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
-#      modename <- inputdf$modename[inputdf$mode== mode]
-#      lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
-#      lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
-# 
-#      source("2.2a_graphhopper_route.R")
-#      source("2.2b_graphhopper_prepare.R")
+# Route lines by LA and mode
+     lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
+     modename <- inputdf$modename[inputdf$mode== mode]
+     lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
+     lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
+
+     source("2.2a_graphhopper_route.R")
+     source("2.2b_graphhopper_prepare.R")
 
 # Create matrices by LA and mode
     # Recode road class
@@ -128,10 +128,6 @@ for(k in 1:5) {
       matla_all <- reshape2::dcast(listla, lahome~latravel, value.var="plength")
       matla_all[is.na(matla_all)] <- 0  
     
-    # Rename routetype for walking, and save
-    if(mode==2) {
-      routetype <- ifelse(routetype=="u0d1", "u0", "u1")
-    } 
     write_csv(matla_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype, "_matla.csv")))
     }
   }
@@ -176,10 +172,6 @@ for(k in 1:5) {
     matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
     matrc_all[is.na(matrc_all)] <- 0 
     
-    # Rename routetype for walking, and save
-    if(mode==2) {
-      routetype <- ifelse(routetype=="u0d1", "u0", "u1")
-    } 
     write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
   }
   }
