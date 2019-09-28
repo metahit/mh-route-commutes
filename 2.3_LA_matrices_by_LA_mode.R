@@ -2,7 +2,7 @@
 ## Make LA matrix##
 ####################
 # Create and populate matrix for between-LA travel
-for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
+for (routetype in routetypelist) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
   laworklist <- unique(legs@data$work_lad14cd) # assume any significant LA of travel has at least one person working there

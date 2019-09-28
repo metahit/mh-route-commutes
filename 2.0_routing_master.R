@@ -17,6 +17,9 @@ proj_27700 <- CRS("+init=epsg:27700")               # UK easting/northing projec
 # PART 0 : SET UP
 ####################
 
+# Define if split by routetype
+  by_routetype <- 0
+
 # Define input params [NB for now routing motorbikes as cars, buses as trucks]
 inputdf <- data.frame(
   mode = c(1:5),
@@ -100,19 +103,30 @@ for(j in 1:length(lahomelist$lad14cd)){
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==2] <- as.character("u1d2")
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==3] <- as.character("u1d3")
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==4] <- as.character("u1d4")
-
+    
+    # Run by route type [comment out if needed]
+    routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
+    
+    # Run all together [comment out if needed]
+    legs@data$routetype <- as.character("all")
+    routetypelist <- c("all")
+    source("2.3_LA_matrices_by_LA_mode.R")
+    source("2.4_road_class_matrices_by_LA_mode.R")
+    
   }
 }
 
 ####################
 # PART 3: REJOIN MATRICES
 ####################
+routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4", "all")
+
 # Join LA matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
+  for (routetype in routetypelist) {
   # Add files together in a list
     lahome <- as.character(lahomelist$lad14cd[1])
     listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
@@ -136,7 +150,7 @@ for(k in 1:5) {
 # Join RC matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
+  for (routetype in routetypelist) {
   # Add files together in a list
   lahome <- as.character(lahomelist$lad14cd[1])
   listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
