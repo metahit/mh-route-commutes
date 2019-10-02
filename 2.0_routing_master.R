@@ -17,9 +17,6 @@ proj_27700 <- CRS("+init=epsg:27700")               # UK easting/northing projec
 # PART 0 : SET UP
 ####################
 
-# Define if split by routetype
-  by_routetype <- 0
-
 # Define input params [NB for now routing motorbikes as cars, buses as trucks]
 inputdf <- data.frame(
   mode = c(1:5),
@@ -104,14 +101,14 @@ for(j in 1:length(lahomelist$lad14cd)){
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==3] <- as.character("u1d3")
     legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==4] <- as.character("u1d4")
     
-    # Run by route type [comment out if needed]
-    routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")
-    source("2.3_LA_matrices_by_LA_mode.R")
-    source("2.4_road_class_matrices_by_LA_mode.R")
-    
     # Run all together [comment out if needed]
     legs@data$routetype <- as.character("all")
     routetypelist <- c("all")
+    source("2.3_LA_matrices_by_LA_mode.R")
+    source("2.4_road_class_matrices_by_LA_mode.R")
+    
+    # Run by route type [comment out if needed]
+    routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
     
@@ -121,12 +118,11 @@ for(j in 1:length(lahomelist$lad14cd)){
 ####################
 # PART 3: REJOIN MATRICES
 ####################
-routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4", "all")
 
 # Join LA matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in routetypelist) {
+  for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
   # Add files together in a list
     lahome <- as.character(lahomelist$lad14cd[1])
     listla <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
@@ -150,7 +146,8 @@ for(k in 1:5) {
 # Join RC matrices to single list by mode
 for(k in 1:5) {
   mode <- as.numeric(k)
-  for (routetype in routetypelist) {
+  for (routetype in c("all", "u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
+  
   # Add files together in a list
   lahome <- as.character(lahomelist$lad14cd[1])
   listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
@@ -169,8 +166,17 @@ for(k in 1:5) {
     listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
     listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
     
+    # Merge in Motorway/A road scaling weight (circular, as this needs to be created after 'all' has been done)
+    listrc$rts_weight <- 1
+    if(routetype!= "all") {
+      rtsscaling <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/allmode_alltrips_ORscaling.csv")))
+      rtsscaling <- rtsscaling[rtsscaling$mode5==mode,]
+      listrc <- left_join(listrc, rtsscaling)
+      listrc$rts_weight[!is.na(listrc$rts_ORscaling)] <- listrc$rts_ORscaling[!is.na(listrc$rts_ORscaling)]
+    }
+    
     # Multiply up by weights & sum weighted lengths across LAs
-    listrc$weightlength <- listrc$lahome_weight * listrc$length
+    listrc$weightlength <- listrc$lahome_weight * listrc$length * listrc$rts_weight
     listrc <- listrc[,c("latravel", "road_class", "weightlength")]
     listrc <- aggregate(. ~latravel+road_class, data=listrc, sum, na.rm=TRUE)
   
@@ -186,7 +192,78 @@ for(k in 1:5) {
     matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
     matrc_all[is.na(matrc_all)] <- 0 
     
-    write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
+    if(routetype== "all") {
+      write_csv(matrc_all, file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode", mode, "_", routetype,"_matrc.csv")))
+    } else {
+      write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
+    }
   }
   }
 }
+
+####################
+# PART 4: OR SCALING FOR MOTORWAY AND PRIMARY
+####################
+## PREPARE GRAPHHOPPER
+  # Add graphhopper files together
+  graphhopper_matrc <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode1_all_matrc.csv")))
+  graphhopper_matrc$mode5 <-as.numeric(1) 
+  for(k in 2:5){
+   mode <- as.numeric(k)
+   nextfilemode <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode", mode, "_all_matrc.csv")))
+   nextfilemode$mode5 <-as.numeric(k) 
+   graphhopper_matrc <- full_join(graphhopper_matrc, nextfilemode)
+  }
+  # Set NA to zero
+    graphhopper_matrc$motorway[is.na(graphhopper_matrc$motorway)] <- 0
+    graphhopper_matrc$rural_primary[is.na(graphhopper_matrc$rural_primary)] <- 0
+    graphhopper_matrc$urban_primary[is.na(graphhopper_matrc$urban_primary)] <- 0
+    
+  # Recalculate percentages
+    graphhopper_matrc$g_all <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary
+    graphhopper_matrc$g_motorway <- graphhopper_matrc$motorway / graphhopper_matrc$g_all
+    graphhopper_matrc$g_rural_primary <- graphhopper_matrc$rural_primary / graphhopper_matrc$g_all
+    graphhopper_matrc$g_urban_primary <- graphhopper_matrc$urban_primary / graphhopper_matrc$g_all
+    
+  # Limit columns
+    graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5","g_motorway", "g_rural_primary", "g_urban_primary")]
+    
+## MERGE IN RTS DATA FROM ROB
+  # Merge in data
+  rts_matrc <- read_csv(file.path(paste0("01_DataInput/RTS/rts_motorway_primary.csv")))
+  graphhopper_matrc <- left_join(graphhopper_matrc, rts_matrc)
+  
+  # Limit to LA of travel (plausibly 100%) and LA done by Rob
+  print(summary({sel_latravel <- (graphhopper_matrc$latravel %in% latravellist$lad14cd)}))
+  graphhopper_matrc <- graphhopper_matrc[sel_latravel,]  
+  lalist_rts <- unique(rts_matrc$latravel)
+  print(summary({sel_rts <- (graphhopper_matrc$latravel %in% lalist_rts)}))
+  graphhopper_matrc <- graphhopper_matrc[sel_rts,]
+  graphhopper_lalist <- unique(graphhopper_matrc$latravel)
+  
+## GENERATE SCALING OR
+  # OR
+  graphhopper_matrc$motorway=(graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway))
+  graphhopper_matrc$rural_primary=(graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary))
+  graphhopper_matrc$urban_primary=(graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary))
+  graphhopper_matrc$urban_other <- 1
+  graphhopper_matrc$rural_other <- 1
+  graphhopper_matrc$off_public_highway <- 1
+  
+  graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5","motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")]
+
+  # Reshape & make NAN = 1
+  graphhopper_matrc <- reshape2::melt(graphhopper_matrc, id.vars=c("latravel", "mode5"), 
+                                      measure.vars=c("motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway" ),variable.name="road_class",value.name="rts_ORscaling")
+  graphhopper_matrc$rts_ORscaling[is.nan(graphhopper_matrc$rts_ORscaling)] <- 1
+  
+  # Make walking same as cycling
+  for (la in graphhopper_lalist) {
+  for (rc in c("motorway", "rural_primary", "urban_primary")) {
+    graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==2] <-   graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==1]
+  }
+  }
+  
+  # Save 
+  write_csv(graphhopper_matrc, file.path(paste0("02_DataCreated/rts_ORscaling/allmode_alltrips_ORscaling.csv")))
+  
