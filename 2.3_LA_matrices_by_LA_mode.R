@@ -33,4 +33,4 @@ for (routetype in routetypelist) {
     #Save
     write_csv(matla, file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matla_mode", mode, "_", routetype, ".csv")))
 }
-print(paste0("LA matrices done for home LA ",lahome, " and mode ", mode, " at ",Sys.time()))
+print(paste0("LA matrices done for home LA ",lahome, " (",j,") and mode ", mode, " at ",Sys.time()))

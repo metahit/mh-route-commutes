@@ -11,4 +11,4 @@ for (i in 1:nrow(lines_toroute_mode)){
   leglist[[i]] <- leg_graphhopper(start_point, end_point,  routeid = routeid, vehicle = modename , legs = T)
 }
 saveRDS(leglist, (file.path(paste0("02_DataCreated/temp/graphhopper_leglists_1907nat/",lahome,"_mode",mode,".Rds"))), version = 2)
-#print(paste0("Routing part A done for home LA ",lahome, " and mode ", mode, " at ",Sys.time()))
+print(paste0("Routing part A done for home LA ",lahome, " (",j,") and mode ", mode, " at ",Sys.time()))

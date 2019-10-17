@@ -26,4 +26,4 @@ rownames(lines_toroute_data) <- sapply(1:length(lines_toroute_lines), function(j
 lines_toroute <- SpatialLinesDataFrame(sl = lines_toroute_lines, data = lines_toroute_data)
 lines_toroute <- spTransform(lines_toroute, proj_4326)
 saveRDS(lines_toroute, (file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds"))), version = 2)
-print(paste0("Lines saved for home LA ",lahome, " at ",Sys.time()))
+print(paste0("Lines saved for home LA ",lahome, " (",j,") at ",Sys.time()))
