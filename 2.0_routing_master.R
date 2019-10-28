@@ -69,8 +69,18 @@ for(j in 1:length(lahomelist$lad14cd)){
      lines_toroute <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/lines_toroute.Rds")))
      modename <- inputdf$modename[inputdf$mode== mode]
      lines_toroute_mode <- lines_toroute[lines_toroute@data$mode5==mode,]
-     lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
+     # Remove some bad points that graph hopper doesn't recognise
+     if(k==3 & j==107){
+       lines_toroute_mode <- lines_toroute_mode[lines_toroute_mode@data$id!="SS39XT E01015893",]
+     }
+     if(k==5 & j==107){
+       lines_toroute_mode <- lines_toroute_mode[lines_toroute_mode@data$id!="SS39XG E01015860",]
+       lines_toroute_mode <- lines_toroute_mode[lines_toroute_mode@data$id!="SS39XQ E01015852",]
+       lines_toroute_mode <- lines_toroute_mode[lines_toroute_mode@data$id!="SS39XR E01015879",]
+     }
 
+     lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
+     
      source("2.2a_graphhopper_route.R")
      source("2.2b_graphhopper_prepare.R")
 
@@ -143,7 +153,7 @@ for(k in 1:5) {
   }
 }
 
-# Join RC matrices to single list by mode
+# Join RC matrices to single list by mode [do first just for all, then part 4, then for the other modes]
 for(k in 1:5) {
   mode <- as.numeric(k)
   for (routetype in c("all", "u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
@@ -202,7 +212,7 @@ for(k in 1:5) {
 }
 
 ####################
-# PART 4: OR SCALING FOR MOTORWAY AND PRIMARY
+# PART 4: OR SCALING FOR MOTORWAY AND PRIMARY (do before run part 3b the second time)
 ####################
 ## PREPARE GRAPHHOPPER
   # Add graphhopper files together
@@ -218,15 +228,20 @@ for(k in 1:5) {
     graphhopper_matrc$motorway[is.na(graphhopper_matrc$motorway)] <- 0
     graphhopper_matrc$rural_primary[is.na(graphhopper_matrc$rural_primary)] <- 0
     graphhopper_matrc$urban_primary[is.na(graphhopper_matrc$urban_primary)] <- 0
+    graphhopper_matrc$urban_other[is.na(graphhopper_matrc$urban_other)] <- 0
+    graphhopper_matrc$rural_other[is.na(graphhopper_matrc$rural_other)] <- 0
+    graphhopper_matrc$off_public_highway[is.na(graphhopper_matrc$off_public_highway)] <- 0
     
   # Recalculate percentages
-    graphhopper_matrc$g_all <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary
-    graphhopper_matrc$g_motorway <- graphhopper_matrc$motorway / graphhopper_matrc$g_all
-    graphhopper_matrc$g_rural_primary <- graphhopper_matrc$rural_primary / graphhopper_matrc$g_all
-    graphhopper_matrc$g_urban_primary <- graphhopper_matrc$urban_primary / graphhopper_matrc$g_all
+    graphhopper_matrc$g_all <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary + graphhopper_matrc$rural_other + graphhopper_matrc$urban_other + graphhopper_matrc$off_public_highway
+    graphhopper_matrc$g_allam <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary
+    graphhopper_matrc$g_am <- graphhopper_matrc$g_allam / graphhopper_matrc$g_all
+    graphhopper_matrc$g_motorway <- graphhopper_matrc$motorway / graphhopper_matrc$g_allam
+    graphhopper_matrc$g_rural_primary <- graphhopper_matrc$rural_primary / graphhopper_matrc$g_allam
+    graphhopper_matrc$g_urban_primary <- graphhopper_matrc$urban_primary / graphhopper_matrc$g_allam
     
   # Limit columns
-    graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5","g_motorway", "g_rural_primary", "g_urban_primary")]
+    graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "g_am", "g_motorway", "g_rural_primary", "g_urban_primary")]
     
 ## MERGE IN RTS DATA FROM ROB
   # Merge in data
@@ -243,14 +258,17 @@ for(k in 1:5) {
   
 ## GENERATE SCALING OR
   # OR
-  graphhopper_matrc$motorway=(graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway))
-  graphhopper_matrc$rural_primary=(graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary))
-  graphhopper_matrc$urban_primary=(graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary))
-  graphhopper_matrc$urban_other <- 1
-  graphhopper_matrc$rural_other <- 1
-  graphhopper_matrc$off_public_highway <- 1
+  graphhopper_matrc$am <- 1 # comment out next line to skip the motorway/primary : minor ratio bit
+  graphhopper_matrc$am=(graphhopper_matrc$rts_am / (1 - graphhopper_matrc$rts_am)) / (graphhopper_matrc$g_am / (1 - graphhopper_matrc$g_am))
   
-  graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5","motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")]
+  graphhopper_matrc$motorway=graphhopper_matrc$am*((graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway)))
+  graphhopper_matrc$rural_primary=graphhopper_matrc$am*((graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary)))
+  graphhopper_matrc$urban_primary=graphhopper_matrc$am*((graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary)))
+  graphhopper_matrc$urban_other <- 1 / (graphhopper_matrc$am)
+  graphhopper_matrc$rural_other <- 1 / (graphhopper_matrc$am)
+  graphhopper_matrc$off_public_highway <- 1 / (graphhopper_matrc$am)
+  
+  graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")]
 
   # Reshape & make NAN = 1
   graphhopper_matrc <- reshape2::melt(graphhopper_matrc, id.vars=c("latravel", "mode5"), 
@@ -259,7 +277,7 @@ for(k in 1:5) {
   
   # Make walking same as cycling
   for (la in graphhopper_lalist) {
-  for (rc in c("motorway", "rural_primary", "urban_primary")) {
+  for (rc in c("motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")) {
     graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==2] <-   graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==1]
   }
   }
