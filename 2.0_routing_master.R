@@ -102,14 +102,6 @@ for(j in 1:length(lahomelist$lad14cd)){
     if (mode %in% c(1, 5)) {
       legs@data$routedistcat[legs@data$routedistcat==4] <- 3 # bike + bus at most level 3
     }
-    legs@data$routetype <- "u0d1"
-    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==2] <- as.character("u0d2")
-    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==3] <- as.character("u0d3")
-    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==4] <- as.character("u0d4")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==1] <- as.character("u1d1")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==2] <- as.character("u1d2")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==3] <- as.character("u1d3")
-    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==4] <- as.character("u1d4")
     
     # Run all together [comment out if needed]
     legs@data$routetype <- as.character("all")
@@ -118,6 +110,14 @@ for(j in 1:length(lahomelist$lad14cd)){
     source("2.4_road_class_matrices_by_LA_mode.R")
     
     # Run by route type [comment out if needed]
+    legs@data$routetype <- "u0d1"
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==2] <- as.character("u0d2")
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==3] <- as.character("u0d3")
+    legs@data$routetype[legs@data$urbanmatch==0 & legs@data$routedistcat==4] <- as.character("u0d4")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==1] <- as.character("u1d1")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==2] <- as.character("u1d2")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==3] <- as.character("u1d3")
+    legs@data$routetype[legs@data$urbanmatch==1 & legs@data$routedistcat==4] <- as.character("u1d4")
     routetypelist <- c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")
     source("2.3_LA_matrices_by_LA_mode.R")
     source("2.4_road_class_matrices_by_LA_mode.R")
