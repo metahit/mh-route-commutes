@@ -176,7 +176,7 @@ for(k in 1:5) {
     listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
     listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
     
-    # Merge in Motorway/A road scaling weight (circular, as this needs to be created after 'all' has been done)
+    # Merge in Motorway/A road scaling weight (circular, as this needs to be created after 'all' has been done - and can only be done for areas with RTS decided)
     listrc$rts_weight <- 1
     if(routetype!= "all") {
       rtsscaling <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/allmode_alltrips_ORscaling.csv")))
