@@ -1,6 +1,6 @@
 clear
 clear matrix
-cd "C:\Users\Anna Goodman\Dropbox\GitHub"
+cd "F:\Github_Maxtor"
 	
 	*****************
 	** PREPARE ROB DATA

@@ -1,6 +1,6 @@
 clear
 clear matrix
-cd "C:\Users\Anna Goodman\Dropbox\GitHub"
+cd "F:\Github_Maxtor"
 	
 	/** ESTIMATE MAX TYPICAL DISTANCES BY COMMUTE MODES
 		use "C:\Users\Anna Goodman\Dropbox\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\NTSEng_20102016.dta", clear
