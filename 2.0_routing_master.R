@@ -259,7 +259,7 @@ for(k in 1:5) {
 ## GENERATE SCALING OR
   # OR
   graphhopper_matrc$am <- 1 # comment out next line to skip the motorway/primary : minor ratio bit
-  graphhopper_matrc$am=(graphhopper_matrc$rts_am / (1 - graphhopper_matrc$rts_am)) / (graphhopper_matrc$g_am / (1 - graphhopper_matrc$g_am))
+  #graphhopper_matrc$am=(graphhopper_matrc$rts_am / (1 - graphhopper_matrc$rts_am)) / (graphhopper_matrc$g_am / (1 - graphhopper_matrc$g_am))
   
   graphhopper_matrc$motorway=graphhopper_matrc$am*((graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway)))
   graphhopper_matrc$rural_primary=graphhopper_matrc$am*((graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary)))
