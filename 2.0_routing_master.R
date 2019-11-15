@@ -258,15 +258,19 @@ for(k in 1:5) {
   
 ## GENERATE SCALING OR
   # OR
-  graphhopper_matrc$am <- 1 # comment out next line to skip the motorway/primary : minor ratio bit
-  #graphhopper_matrc$am=(graphhopper_matrc$rts_am / (1 - graphhopper_matrc$rts_am)) / (graphhopper_matrc$g_am / (1 - graphhopper_matrc$g_am))
+  graphhopper_matrc$m_infinite <- graphhopper_matrc$rts_motorway==0 | graphhopper_matrc$rts_motorway==1 | graphhopper_matrc$g_motorway==0 | graphhopper_matrc$g_motorway==1
+  graphhopper_matrc$motorway <- ((graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway)))
+  graphhopper_matrc$motorway[graphhopper_matrc$m_infinite==TRUE] <- 1
   
-  graphhopper_matrc$motorway=graphhopper_matrc$am*((graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway)))
-  graphhopper_matrc$rural_primary=graphhopper_matrc$am*((graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary)))
-  graphhopper_matrc$urban_primary=graphhopper_matrc$am*((graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary)))
-  graphhopper_matrc$urban_other <- 1 / (graphhopper_matrc$am)
-  graphhopper_matrc$rural_other <- 1 / (graphhopper_matrc$am)
-  graphhopper_matrc$off_public_highway <- 1 / (graphhopper_matrc$am)
+  graphhopper_matrc$rural_primary=((graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary)))
+
+  graphhopper_matrc$u_infinite <- graphhopper_matrc$rts_urban_primary==0 | graphhopper_matrc$rts_urban_primary==1 | graphhopper_matrc$g_urban_primary==0 | graphhopper_matrc$g_urban_primary==1
+  graphhopper_matrc$urban_primary=((graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary)))
+  graphhopper_matrc$urban_primary[graphhopper_matrc$u_infinite==TRUE] <- 1
+
+  graphhopper_matrc$urban_other <- 1 
+  graphhopper_matrc$rural_other <- 1
+  graphhopper_matrc$off_public_highway <- 1
   
   graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")]
 
