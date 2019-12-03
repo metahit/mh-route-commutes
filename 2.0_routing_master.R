@@ -25,7 +25,8 @@ inputdf <- data.frame(
 
 # Define LA list
 lad14 <- read.csv("01_DataInput/lad14cd.csv")
-lahomelist <- lad14[lad14$lahome==1,]
+#lahomelist <- lad14[lad14$lahome==1,]
+lahomelist <- lad14 # do nationally
 latravellist <- lad14[lad14$latravel==1,]
 
 ####################
@@ -51,13 +52,7 @@ for(j in 1:length(lahomelist$lad14cd)){
 # Load and transform large spatial data files
 lad14shape <- readOGR(file.path("01_DataInput/lad14_boundaries/Local_Authority_Districts_December_2015_Ultra_Generalised_Clipped_Boundaries_in_Great_Britain.shp")) # [NB LAD15CD always same as LAD14CD]
 lad14shape <- spTransform(lad14shape, proj_27700)
-# builtup <- readOGR("01_DataInput/built_up_areas/Builtup_Areas_December_2011_Boundaries_V2.shp")
-# builtup <- builtup[,names(builtup@data) %in% c("urban_bua")]
-# builtup <- spTransform(builtup, proj_27700)
-# lad14builtup <- intersect(lad14shape, builtup)
-# lad14builtup <- spTransform(lad14builtup, proj_27700)
-# geojson_write(lad14builtup, file = ("01_DataInput/lad14_by_builtup/lad14builtup.geojson"))
-lad14builtup <- readOGR("01_DataInput/lad14_by_builtup/lad14builtup.geojson")
+
 
 for(j in 1:length(lahomelist$lad14cd)){
   lahome <- as.character(lahomelist$lad14cd[j])
@@ -80,21 +75,19 @@ for(j in 1:length(lahomelist$lad14cd)){
      }
 
      lines_toroute_mode_vars <- unique(lines_toroute_mode@data[,names(lines_toroute_mode@data) %in% c("id","home_lad14cd","work_lad14cd","urbanmatch","lahome_weight")])
-     
+
      source("2.2a_graphhopper_route.R")
      source("2.2b_graphhopper_prepare.R")
 
 # Create matrices by LA and mode
     # Recode road class
     legs <- readRDS(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/legs_mode",mode,".Rds")))
-    legs@data$road_classcat <- 3
+    legs@data$road_classcat <- 2
     legs@data$road_classcat[legs@data$road_class %in% c("motorway")] <- 1
-    legs@data$road_classcat[legs@data$road_class %in% c("trunk", "primary", "motorroad")] <- 2
-    legs@data$road_classcat[legs@data$road_class %in% c("path", "steps", "forestry")] <- 4 # judge these are out of stats19 scope, although NB path might be in scope if a footway next a road. See https://github.com/metahit/mh-route-commutes/tree/master/02_DataCreated/national_data_test
     # https://wiki.openstreetmap.org/wiki/Key:highway
     # https://github.com/graphhopper/graphhopper/blob/35b58ddbe8e3aeecd310cf83f637211a6f784093/core/src/main/java/com/graphhopper/routing/profiles/RoadClass.java#L4-L9 
     
-    # Define route type
+    # Define route type (see '09x-drafts\191128_CodeAllLANAt' for 6 road types; add back in urban etc - but then OR scaling not work)
     legs@data$routedistcat <-as.numeric(cut(legs@data$routedist, c(0,5,15,40,100), labels=c(1:4)))
     if (mode==2){
       legs@data$routedistcat <- 1  # walking always lowest cat
@@ -157,7 +150,6 @@ for(k in 1:5) {
 for(k in 1:5) {
   mode <- as.numeric(k)
   for (routetype in c("all", "u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
-  
   # Add files together in a list
   lahome <- as.character(lahomelist$lad14cd[1])
   listrc <- read_csv(file.path(paste0("02_DataCreated/temp_matrix/",lahome,"/matrc_mode", mode, "_", routetype,".csv")))
@@ -168,43 +160,55 @@ for(k in 1:5) {
   }
   listrc  <- listrc[listrc$latravel!="x",] 
   if(nrow(listrc)!=0) {
-    # Modify road types to 6-way type
+    # Modify road types to motorway/other
     listrc$road_class <- "motorway"
-    listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="urban"] <- "urban_primary"
-    listrc$road_class[listrc$road_classcat==2 & listrc$urban_rural=="rural"] <- "rural_primary"
-    listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="urban"] <- "urban_other"
-    listrc$road_class[listrc$road_classcat==3 & listrc$urban_rural=="rural"] <- "rural_other"
-    listrc$road_class[listrc$road_classcat==4 ] <- "off_public_highway"
+    listrc$road_class[listrc$road_classcat==2 ] <- "other"
     
-    # Merge in Motorway/A road scaling weight (circular, as this needs to be created after 'all' has been done - and can only be done for areas with RTS decided)
+    # Rename City of London and Isles Scilly
+    listrc$latravel[listrc$latravel=="E06000053"] <- "E06000052" # Isles of scilly
+    listrc$latravel[listrc$latravel=="E09000001"] <- "E09000033" # City of London
+    
+    # Merge in motorway scaling weight (circular, as this needs to be created after 'all' has been done - and can only be done for areas with RTS decided)
     listrc$rts_weight <- 1
-    if(routetype!= "all") {
-      rtsscaling <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/allmode_alltrips_ORscaling.csv")))
+    if(routetype!= "all" & mode %in% (3:5)) {
+      rtsscaling <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/alltrips_ORscaling.csv")))
       rtsscaling <- rtsscaling[rtsscaling$mode5==mode,]
-      listrc <- left_join(listrc, rtsscaling)
+      listrc <- left_join(listrc, rtsscaling, by = c("latravel", "road_class"))
       listrc$rts_weight[!is.na(listrc$rts_ORscaling)] <- listrc$rts_ORscaling[!is.na(listrc$rts_ORscaling)]
     }
     
-    # Multiply up by weights & sum weighted lengths across LAs
-    listrc$weightlength <- listrc$lahome_weight * listrc$length * listrc$rts_weight
+    # Multiply up by weights & sum weighted lengths across LAs (NB weightlenght weights only b lahome weight, not RTS scaling)
+    listrc_rtswt <- unique(listrc[,c("latravel", "road_class", "rts_weight")])
+    listrc$weightlength <- listrc$lahome_weight * listrc$length
     listrc <- listrc[,c("latravel", "road_class", "weightlength")]
     listrc <- aggregate(. ~latravel+road_class, data=listrc, sum, na.rm=TRUE)
-  
+    listrc <- left_join(listrc, listrc_rtswt, by = c("latravel", "road_class"))
+    
     # Create a percentage
     listrc2 <- listrc[,c("latravel", "weightlength")]
     listrc2 <- dplyr::rename(listrc2, laweightlength = weightlength)
     listrc2 <- aggregate(. ~latravel, data=listrc2, sum, na.rm=TRUE)
     listrc <- left_join(listrc, listrc2, by = "latravel")
-    listrc$plength <- listrc$weightlength / listrc$laweightlength
-    listrc <- listrc[,c("latravel", "road_class", "plength")]
-  
-    # Reshape long to wide
-    matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
-    matrc_all[is.na(matrc_all)] <- 0 
+    listrc$plength_raw <- listrc$weightlength / listrc$laweightlength
+    
+    # Convert percentage to an OR, multiply by OR scaling weight, and convert back to percent. Make nan = 1 (when only 'other' roads)
+    listrc$newor <- (listrc$plength_raw / (1 - listrc$plength_raw)) * listrc$rts_weight
+    listrc$plength <- listrc$newor / (1 + listrc$newor)
+    listrc$plength[is.nan(listrc$plength)] <- 1
+    listrc <- listrc[,c("latravel", "road_class", "weightlength", "plength")]
     
     if(routetype== "all") {
+      matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="weightlength")
+      matrc_all[is.na(matrc_all)] <- 0 
       write_csv(matrc_all, file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode", mode, "_", routetype,"_matrc.csv")))
     } else {
+      # Reshape long to wide
+      matrc_all <- reshape2::dcast(listrc, latravel~road_class, value.var="plength")
+      matrc_all[is.na(matrc_all)] <- 0
+      if(mode %in% (1:2)) {
+        matrc_all$motorway <- 0
+        matrc_all <- matrc_all[,c(1,3,2)]
+      }      
       write_csv(matrc_all, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
     }
   }
@@ -216,76 +220,59 @@ for(k in 1:5) {
 ####################
 ## PREPARE GRAPHHOPPER
   # Add graphhopper files together
-  graphhopper_matrc <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode1_all_matrc.csv")))
-  graphhopper_matrc$mode5 <-as.numeric(1) 
-  for(k in 2:5){
+  graphhopper_matrc <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode3_all_matrc.csv")))
+  graphhopper_matrc$mode5 <-as.numeric(3) 
+  for(k in 4:5){
    mode <- as.numeric(k)
    nextfilemode <- read_csv(file.path(paste0("02_DataCreated/rts_ORscaling/bymode_all_matrc/mode", mode, "_all_matrc.csv")))
    nextfilemode$mode5 <-as.numeric(k) 
    graphhopper_matrc <- full_join(graphhopper_matrc, nextfilemode)
   }
-  # Set NA to zero
-    graphhopper_matrc$motorway[is.na(graphhopper_matrc$motorway)] <- 0
-    graphhopper_matrc$rural_primary[is.na(graphhopper_matrc$rural_primary)] <- 0
-    graphhopper_matrc$urban_primary[is.na(graphhopper_matrc$urban_primary)] <- 0
-    graphhopper_matrc$urban_other[is.na(graphhopper_matrc$urban_other)] <- 0
-    graphhopper_matrc$rural_other[is.na(graphhopper_matrc$rural_other)] <- 0
-    graphhopper_matrc$off_public_highway[is.na(graphhopper_matrc$off_public_highway)] <- 0
+  # Get total
+    graphhopper_matrc$all <- graphhopper_matrc$motorway + graphhopper_matrc$other
     
-  # Recalculate percentages
-    graphhopper_matrc$g_all <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary + graphhopper_matrc$rural_other + graphhopper_matrc$urban_other + graphhopper_matrc$off_public_highway
-    graphhopper_matrc$g_allam <- graphhopper_matrc$motorway + graphhopper_matrc$rural_primary + graphhopper_matrc$urban_primary
-    graphhopper_matrc$g_am <- graphhopper_matrc$g_allam / graphhopper_matrc$g_all
-    graphhopper_matrc$g_motorway <- graphhopper_matrc$motorway / graphhopper_matrc$g_allam
-    graphhopper_matrc$g_rural_primary <- graphhopper_matrc$rural_primary / graphhopper_matrc$g_allam
-    graphhopper_matrc$g_urban_primary <- graphhopper_matrc$urban_primary / graphhopper_matrc$g_allam
+  # Merge in city region
+    cityregion <- lad14[,c("lad14cd", "cityregion")]
+    graphhopper_matrc <- left_join(graphhopper_matrc, cityregion, by = c("latravel" = "lad14cd"))
     
+  # Create graphhopper city region level of motorway
+    graphhopper_matrc2 <- graphhopper_matrc[,c("cityregion", "mode5", "motorway", "all")]
+    graphhopper_matrc2 <- aggregate(. ~cityregion+mode5, data=graphhopper_matrc2, sum, na.rm=TRUE)
+    graphhopper_matrc2$g_motorway <- graphhopper_matrc2$motorway / graphhopper_matrc2$all
+    graphhopper_matrc2 <- graphhopper_matrc2[,c("cityregion", "mode5", "g_motorway")]
+    graphhopper_matrc <- left_join(graphhopper_matrc, graphhopper_matrc2, by = c("mode5", "cityregion"))
+
   # Limit columns
-    graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "g_am", "g_motorway", "g_rural_primary", "g_urban_primary")]
+    graphhopper_matrc <- graphhopper_matrc[,c("latravel", "cityregion", "mode5", "g_motorway")]
     
-## MERGE IN RTS DATA FROM ROB
+## MERGE IN RTS DATA FROM ROB [NB some areas like Westminster have zero motorway according to RTS, some on graphhopper, as graphhopper counts westway flyover as motorway. so some discrepancy is different definitionns in this way]
   # Merge in data
-  rts_matrc <- read_csv(file.path(paste0("01_DataInput/RTS/rts_motorway_primary.csv")))
-  graphhopper_matrc <- left_join(graphhopper_matrc, rts_matrc)
+  rts_matrc <- read_csv(file.path(paste0("01_DataInput/RTS/rts_motorway.csv")))
+  graphhopper_matrc <- left_join(graphhopper_matrc, rts_matrc, by = c("mode5", "cityregion"))
   
-  # Limit to LA of travel (plausibly 100%) and LA done by Rob
+  # Limit to LA of travel (plausibly 100%)
   print(summary({sel_latravel <- (graphhopper_matrc$latravel %in% latravellist$lad14cd)}))
   graphhopper_matrc <- graphhopper_matrc[sel_latravel,]  
-  lalist_rts <- unique(rts_matrc$latravel)
-  print(summary({sel_rts <- (graphhopper_matrc$latravel %in% lalist_rts)}))
-  graphhopper_matrc <- graphhopper_matrc[sel_rts,]
-  graphhopper_lalist <- unique(graphhopper_matrc$latravel)
+  # lalist_rts <- unique(rts_matrc$latravel)
+  # print(summary({sel_rts <- (graphhopper_matrc$latravel %in% lalist_rts)}))
+  # graphhopper_matrc <- graphhopper_matrc[sel_rts,]
+  # graphhopper_lalist <- unique(graphhopper_matrc$latravel)
   
-## GENERATE SCALING OR
-  # OR
-  graphhopper_matrc$m_infinite <- graphhopper_matrc$rts_motorway==0 | graphhopper_matrc$rts_motorway==1 | graphhopper_matrc$g_motorway==0 | graphhopper_matrc$g_motorway==1
-  graphhopper_matrc$motorway <- ((graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway)))
+## GENERATE SCALING ratios
+  # SCALE
+  graphhopper_matrc$m_infinite <- graphhopper_matrc$rts_motorway==0 | graphhopper_matrc$g_motorway==0
+  graphhopper_matrc$motorway <- (graphhopper_matrc$rts_motorway / (1 - graphhopper_matrc$rts_motorway)) / (graphhopper_matrc$g_motorway / (1 - graphhopper_matrc$g_motorway))
   graphhopper_matrc$motorway[graphhopper_matrc$m_infinite==TRUE] <- 1
-  
-  graphhopper_matrc$rural_primary=((graphhopper_matrc$rts_rural_primary / (1 - graphhopper_matrc$rts_rural_primary)) / (graphhopper_matrc$g_rural_primary / (1 - graphhopper_matrc$g_rural_primary)))
+  graphhopper_matrc$other <- 1 / graphhopper_matrc$motorway
 
-  graphhopper_matrc$u_infinite <- graphhopper_matrc$rts_urban_primary==0 | graphhopper_matrc$rts_urban_primary==1 | graphhopper_matrc$g_urban_primary==0 | graphhopper_matrc$g_urban_primary==1
-  graphhopper_matrc$urban_primary=((graphhopper_matrc$rts_urban_primary / (1 - graphhopper_matrc$rts_urban_primary)) / (graphhopper_matrc$g_urban_primary / (1 - graphhopper_matrc$g_urban_primary)))
-  graphhopper_matrc$urban_primary[graphhopper_matrc$u_infinite==TRUE] <- 1
+  graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "cityregion", "motorway", "other")]
 
-  graphhopper_matrc$urban_other <- 1 
-  graphhopper_matrc$rural_other <- 1
-  graphhopper_matrc$off_public_highway <- 1
-  
-  graphhopper_matrc <- graphhopper_matrc[,c("latravel", "mode5", "motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")]
-
-  # Reshape & make NAN = 1
-  graphhopper_matrc <- reshape2::melt(graphhopper_matrc, id.vars=c("latravel", "mode5"), 
-                                      measure.vars=c("motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway" ),variable.name="road_class",value.name="rts_ORscaling")
+  # Reshape & make NA and NAN = 1
+  graphhopper_matrc <- reshape2::melt(graphhopper_matrc, id.vars=c("latravel", "mode5", "cityregion"), 
+                                      measure.vars=c("motorway", "other" ),variable.name="road_class",value.name="rts_ORscaling")
+  graphhopper_matrc$rts_ORscaling[is.na(graphhopper_matrc$rts_ORscaling)] <- 1
   graphhopper_matrc$rts_ORscaling[is.nan(graphhopper_matrc$rts_ORscaling)] <- 1
-  
-  # Make walking same as cycling
-  for (la in graphhopper_lalist) {
-  for (rc in c("motorway", "rural_primary", "urban_primary", "urban_other", "rural_other", "off_public_highway")) {
-    graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==2] <-   graphhopper_matrc$rts_ORscaling[graphhopper_matrc$latravel==la & graphhopper_matrc$road_class==rc & graphhopper_matrc$mode5==1]
-  }
-  }
-  
+
   # Save 
-  write_csv(graphhopper_matrc, file.path(paste0("02_DataCreated/rts_ORscaling/allmode_alltrips_ORscaling.csv")))
+  write_csv(graphhopper_matrc, file.path(paste0("02_DataCreated/rts_ORscaling/alltrips_ORscaling.csv")))
   

@@ -6,7 +6,7 @@ for (routetype in routetypelist) {
   legsuse <- legs[legs@data$routetype == routetype,]
   nroute <- nrow(legsuse@data[legsuse@data$start==0,])
   laworklist <- unique(legs@data$work_lad14cd) # assume any significant LA of travel has at least one person working there
-  
+
   matla <- data.frame("lahome"= character(0), "latravel"=character(0),"nroute"=numeric(0), "length"=numeric(0), "plength"=numeric(0),stringsAsFactors=FALSE)
   
   if (nroute==0) {

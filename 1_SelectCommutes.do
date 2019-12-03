@@ -13,7 +13,7 @@ cd "F:\Github_Maxtor"
 	*****************
 	** SELECT ROUTE SAMPLE FROM CENSUS DATA
 	*****************
-		use "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\SPindivid_CensusNTSAPS_Eng.dta", clear
+		use "C:\Users\Anna Goodman\Dropbox\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\SPindivid_CensusNTSAPS_Eng.dta", clear
 			keep home_lsoa home_postcode home_lad14cd home_laname home_gor work_lsoa urban urbanmatch commute_mainmode9
 			
 		* DROP OD PAIRS NOT IN SCOPE
@@ -43,15 +43,16 @@ cd "F:\Github_Maxtor"
 				
 		* MERGE IN WORK LA
 			rename work_lsoa lsoa11cd
-			merge m:1 lsoa11cd using "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1a_dataoriginal\Census2011_MergeInGeography\LSOA_MSOA_LAlookup\EngWales_LSOA11_MSOA11_LAD11_EW_LUv2.dta" , keepus(lad11cd)
+			merge m:1 lsoa11cd using "C:\Users\Anna Goodman\Dropbox\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1a_dataoriginal\Census2011_MergeInGeography\LSOA_MSOA_LAlookup\EngWales_LSOA11_MSOA11_LAD11_EW_LUv2.dta" , keepus(lad11cd)
 				drop if _m==2 // wales
 				drop _m	
 			rename lsoa11cd work_lsoa
 			rename lad11cd home_lad11cd
-			merge m:1 home_lad11cd using "..\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\0temp\LAcode_20112014.dta"
+			merge m:1 home_lad11cd using "C:\Users\Anna Goodman\Dropbox\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\1b_datacreated\0temp\LAcode_20112014.dta"
 				drop if _m==2 // should be no one
 				drop _m	
 			rename lad2014_code work_lad14cd
+* if redo this fix isles scilly/city london - change theri codes to cornwall / westminster
 	
 		* MAKE 1-WAY IDs
 			rename home_postcode geo_code_o
