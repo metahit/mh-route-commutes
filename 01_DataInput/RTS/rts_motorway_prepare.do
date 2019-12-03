@@ -79,9 +79,15 @@ cd "F:\Github_Maxtor"
 				}	
 
 		* SUM BY MODE
-			bysort cityregion mode5: egen rts_all=sum(allroads)
-			bysort cityregion mode5: egen rts_allm=sum(motorway)
+			bysort cityregion mode5: egen long rts_all=sum(allroads)
+			bysort cityregion mode5: egen long rts_allm=sum(motorway)
 				gen rts_motorway = rts_allm/rts_all
+				
+		/* TOTAL ACROSS ALL CITY REGIONS -- add in if need otherengland
+			bysort mode5: egen long allcr_all=sum(allroads)
+			bysort mode5: egen long allcr_allm=sum(motorway)
+			
+		*/
 
 		* SAVE
 			order cityregion mode5 rts_motorway
