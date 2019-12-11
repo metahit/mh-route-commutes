@@ -275,4 +275,30 @@ for(k in 1:5) {
 
   # Save 
   write_csv(graphhopper_matrc, file.path(paste0("02_DataCreated/rts_ORscaling/alltrips_ORscaling.csv")))
+
+  
+####################
+# PART 5: SCALE DISTANCE MATRICES TO DURATION
+####################
+  motorwayscaledf <- data.frame(
+    mode = c(1:5),
+    speedscale = c(1,1,4.5, 4.3, 8.0) # numbers from Dropbox\1 - Phys Act_1-PA main\2017_MetaHIT_analysis\2_program\0.2_NTSprepare_191210.do
+  )
+  for(k in 1:5) {
+    mode <- as.numeric(k)
+    motorwayscale <- motorwayscaledf$speedscale[motorwayscaledf$mode==mode]
+    for (routetype in c("u0d1", "u0d2", "u0d3", "u0d4", "u1d1", "u1d2", "u1d3", "u1d4")) {
+    if (file.exists(file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))) {
+      matrc_dist <- read_csv(file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc.csv")))
+      # Scale down motorway distance
+      matrc_dist$motorway2 <- (matrc_dist$motorway / motorwayscale)
+      matrc_dist$motorway2 <- matrc_dist$motorway2 / (matrc_dist$motorway2 + matrc_dist$other)
+      matrc_dist$motorway <- matrc_dist$motorway2
+      matrc_dist$other <- (1 - matrc_dist$motorway)
+      # Limit columns and save
+      matrc_dist <- matrc_dist[,c("latravel", "motorway", "other")]
+      write_csv(matrc_dist, file.path(paste0("../mh-execute/inputs/travel-matrices/mode", mode, "_", routetype,"_matrc_durn.csv")))
+    }
+    }
+  }
   
